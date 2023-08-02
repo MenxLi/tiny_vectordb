@@ -55,7 +55,7 @@ def _writeNinja(feat_dim: int):
         if platform.system() == "Darwin":
             link_flags.append("-undefined dynamic_lookup")
 
-        to_compile = [ "vecdbImpl", "searchAlgorithm" ]
+        to_compile = [ "vecdbImpl", ]
 
         cxx = "g++"
 

@@ -28,7 +28,7 @@ def compareTime(n: int):
 
     collection.addBulk(ids, vectors)
     _t = time.time()
-    sc_0 = collection._impl.cosineSimilarity(query)
+    sc_0 = collection._impl.score(query)
     t_0 = time.time() - _t
     print("[Eigen] Time taken:", t_0, "seconds")
     _t = time.time()
