@@ -11,7 +11,7 @@ Searcher<NumT>::Searcher(){
 
 template <typename NumT>
 Eigen::Vector<float, Eigen::Dynamic> Searcher<NumT>::
-scores(MatrixF& target, const std::vector<NumT>& query){
+cosineSimilarity(MatrixF& target, const std::vector<NumT>& query){
     // target: (N, feat_dim)
     // query: (feat_dim, )
     if (target.cols() != query.size()){

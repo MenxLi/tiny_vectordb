@@ -134,13 +134,21 @@ void VectorCollectionImpl<NumT>::deleteBulk(const StringVector& ids_del){
 }
 
 template <typename NumT>
-std::vector<float> VectorCollectionImpl<NumT>::scores(const std::vector<NumT> &query){
+std::vector<float> VectorCollectionImpl<NumT>::cosineSimilarity(const std::vector<NumT> &query){
     if (query.size() != FEAT_DIM){
         throw std::runtime_error("query size not match");
     }
-    Eigen::Map<const Eigen::Matrix<NumT, FEAT_DIM, 1>> query_vec(query.data(), query.size());
-    Eigen::Matrix<NumT, Eigen::Dynamic, 1> search_scores = (*vector_chunk) * query_vec.transpose();
+
+    Eigen::Matrix<NumT, FEAT_DIM, 1> query_matrix = Eigen::Map<const Eigen::Matrix<NumT, FEAT_DIM, 1>>(query.data());
+    Eigen::Matrix<NumT, Eigen::Dynamic, 1> search_scores = (*vector_chunk)*query_matrix;
+
+    float norm_query = query_matrix.norm();
+    Eigen::Vector<float, Eigen::Dynamic> norm_collection = vector_chunk->rowwise().norm();
+
+    search_scores = search_scores.array() / (norm_query * norm_collection.array());
+
     return std::vector<float>(search_scores.data(), search_scores.data() + search_scores.size());
+
 }
 
 template <typename NumT>
@@ -167,10 +175,6 @@ PYBIND11_MODULE(MODULE_NAME, m){
         .def("has", &VectorCollectionImpl<num_t>::has)
         .def("get", &VectorCollectionImpl<num_t>::get)
         .def("deleteBulk", &VectorCollectionImpl<num_t>::deleteBulk)
-        .def("print", &VectorCollectionImpl<num_t>::print);
-        // .def("scores", &VectorCollectionImpl<num_t>::scores);
-    
-    // py::class_ < SearchAlgorithm::Searcher<num_t> >(m, "Searcher")
-    //     .def(py::init<>())
-    //     .def("scores", &SearchAlgorithm::Searcher<num_t>::scores);
+        .def("print", &VectorCollectionImpl<num_t>::print)
+        .def("cosineSimilarity", &VectorCollectionImpl<num_t>::cosineSimilarity);
 }

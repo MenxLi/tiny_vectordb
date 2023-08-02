@@ -1,6 +1,6 @@
 #pragma once
 
-// #include "searchAlgorithm.h"
+#include "searchAlgorithm.h"
 #include "common.h"
 #include <vector>
 
@@ -15,7 +15,7 @@ public:
     std::vector<NumT> get(std::string& id);
     void deleteBulk(const StringVector& ids);
 
-    std::vector<float> scores(const std::vector<NumT>& query);
+    std::vector<float> cosineSimilarity(const std::vector<NumT>& query);
 
     void print();   // for debug
 private:
@@ -25,5 +25,5 @@ private:
     std::map<std::string, int> id2idx_;
     void reIndex();
 
-    // SearchAlgorithm::Searcher<NumT>* searcher;
+    SearchAlgorithm::Searcher<NumT>* searcher;
 };

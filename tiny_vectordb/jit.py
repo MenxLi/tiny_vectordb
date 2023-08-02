@@ -55,7 +55,7 @@ def _writeNinja(feat_dim: int):
         if platform.system() == "Darwin":
             link_flags.append("-undefined dynamic_lookup")
 
-        to_compile = [ "vecdbImpl"]
+        to_compile = [ "vecdbImpl", "searchAlgorithm" ]
 
         cxx = "g++"
 
@@ -75,7 +75,6 @@ def _get_module_name(feat_dim):
 
 def compile(feat_dim) -> str:
     _writeNinja(feat_dim)
-    # print("\033[96m", end="\r")
     print("\033[1;30m", end="\r")
     print("----------------------------------------")
     subprocess.check_call(["ninja", "-t", "commands"], cwd = BUILD_DIR)
