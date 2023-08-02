@@ -33,7 +33,6 @@ void VectorCollectionImpl<NumT>::addBulk(StringVector ids, const std::vector<std
     if (ids.size() != vectors.size()){
         throw std::runtime_error("ids and vectors size not match");
     }
-    int old_size = vector_chunk->rows();
 
     // duplicate ids check
     std::set<std::string> id_set(ids.begin(), ids.end());
@@ -45,6 +44,18 @@ void VectorCollectionImpl<NumT>::addBulk(StringVector ids, const std::vector<std
             throw std::runtime_error("id already exists");
         }
     }
+
+    addRawBulk(ids, vectors);
+
+    // log modifications
+    for (int i = 0; i < ids.size(); i++){
+        mod_map[ids[i]] = ModificaionType::ADD;
+    }
+}
+
+template <typename NumT>
+void VectorCollectionImpl<NumT>::addRawBulk(StringVector ids, const std::vector<std::vector<NumT>> vectors){
+    int old_size = vector_chunk->rows();
 
     // re-allocate memory for vector_chunk
     MatrixF* new_chunk = new MatrixF(ids.size() + old_size, FEAT_DIM);
@@ -130,6 +141,17 @@ void VectorCollectionImpl<NumT>::deleteBulk(const StringVector& ids_del){
     this->vector_chunk = new_chunk;
     this->identifiers = new_identifiers;
     reIndex();
+
+    // log modifications
+    for (int i = 0; i < ids_del.size(); i++){
+        if (mod_map.find(ids_del[i]) != mod_map.end()){
+            if (mod_map[ids_del[i]] == ModificaionType::ADD){
+                mod_map.erase(ids_del[i]);
+                continue;
+            }
+        }
+        mod_map[ids_del[i]] = ModificaionType::DELETE;
+    }
 }
 
 template <typename NumT>

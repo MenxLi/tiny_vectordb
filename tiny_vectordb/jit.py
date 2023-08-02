@@ -56,6 +56,7 @@ def _writeNinja(feat_dim: int):
             link_flags.append("-undefined dynamic_lookup")
 
         to_compile = [ "vecdbImpl", ]
+        to_compile_lib = [ "diskIO" ]
 
         cxx = "g++"
 
@@ -66,9 +67,12 @@ def _writeNinja(feat_dim: int):
         writer.rule("compile", "$CXX -MMD -MF $out.d $CXX_FLAGS $in -c -o $out", depfile="$out.d", description="compile $out")
         for _m in to_compile:
             writer.build(os.path.join(BIN_DIR, f"{_m}{feat_dim}.o"), "compile", os.path.join(SRC_DIR, f"{_m}.cpp"))
+        for _m in to_compile_lib:
+            writer.build(os.path.join(BIN_DIR, f"{_m}.o"), "compile", os.path.join(SRC_DIR, f"{_m}.cpp"))
         
         writer.rule("link", "$CXX $LINK_FLAGS $in -o $out", description="link $out")
-        writer.build(os.path.join(BIN_DIR, f"{module_name}{ext_suffix}"), "link", [os.path.join(BIN_DIR, f"{_m}{feat_dim}.o") for _m in to_compile])
+        writer.build(os.path.join(BIN_DIR, f"{module_name}{ext_suffix}"), "link", \
+                     [os.path.join(BIN_DIR, f"{_m}{feat_dim}.o") for _m in to_compile] + [os.path.join(BIN_DIR, f"{_m}.o") for _m in to_compile_lib])
 
 def _get_module_name(feat_dim):
     return f"vecdbImpl{feat_dim}"

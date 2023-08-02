@@ -10,11 +10,6 @@
 #include <pybind11/stl.h>
 // #include <pybind11/eigen.h>
 
-typedef float num_t;
-typedef Eigen::Matrix<num_t, Eigen::Dynamic, FEAT_DIM, Eigen::RowMajor> 
-MatrixF;
-typedef std::vector<std::string> StringVector;
-
 #ifndef FEAT_DIM
 #define FEAT_DIM 768
 #endif
@@ -23,4 +18,13 @@ typedef std::vector<std::string> StringVector;
 #define MODULE_NAME vecdbImpl
 #endif
 
+typedef float num_t;
+typedef Eigen::Matrix<num_t, Eigen::Dynamic, FEAT_DIM, Eigen::RowMajor> 
+MatrixF;
+typedef std::vector<std::string> StringVector;
 
+enum class ModificaionType{
+    ADD,
+    DELETE,
+    UPDATE,
+};
