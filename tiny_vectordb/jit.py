@@ -2,7 +2,7 @@
 # https://ninja-build.org/manual.html
 from ninja import ninja_syntax
 import pybind11
-import os, sysconfig, subprocess, platform
+import os, sysconfig, subprocess, platform, sys
 
 
 __this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -73,18 +73,24 @@ def _writeNinja(feat_dim: int):
 def _get_module_name(feat_dim):
     return f"vecdbImpl{feat_dim}"
 
-def compile(feat_dim) -> str:
+def compile(feat_dim, quite = False) -> str:
     _writeNinja(feat_dim)
-    print("\033[1;30m", end="\r")
-    print("----------------------------------------")
-    subprocess.check_call(["ninja", "-t", "commands"], cwd = BUILD_DIR)
-    print("----------------------------------------")
-    subprocess.check_call("ninja", cwd = BUILD_DIR)
+    def print_(*args, **kwargs):
+        if not quite:
+            print(*args, **kwargs)
+    SP_STDOUT = subprocess.DEVNULL if quite else sys.stdout
+
+    print_("\033[1;30m", end="\r")
+    print_("----------------------------------------")
+
+    subprocess.check_call(["ninja", "-t", "commands"], cwd = BUILD_DIR, stdout=SP_STDOUT)
+    print_("----------------------------------------")
+
+    subprocess.check_call("ninja", cwd = BUILD_DIR, stdout=SP_STDOUT)
+
     with open(os.path.join(BUILD_DIR, "compile_commands.json"), "w") as f:
         # ninja -t compdb > compile_commands.json
-        subprocess.check_call(["ninja", "-t", "compdb"], cwd = BUILD_DIR, stdout=f)
-    print("\033[0m", end="\r")
-    return _get_module_name(feat_dim)
+        subprocess.check_call(["ninja", "-t", "compdb"], cwd = BUILD_DIR, stdout=f, stderr=SP_STDOUT)
 
-    
-    
+    print_("\033[0m", end="\r")
+    return _get_module_name(feat_dim)

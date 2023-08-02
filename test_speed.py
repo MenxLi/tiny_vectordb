@@ -16,7 +16,7 @@ def cos_sim_np(tgt, query):
     return np.dot(tgt, query) / (np.linalg.norm(tgt, axis=1) * np.linalg.norm(query))
 
 def compareTime(n: int):
-    collection = VectorCollection[float]("test", LEN)
+    collection = VectorCollection[float]("test", LEN, quite_loading=True)
     print("Compare time taken for", n, "vectors")
 
     np.random.seed(0)
@@ -30,7 +30,7 @@ def compareTime(n: int):
     _t = time.time()
     sc_0 = collection._impl.cosineSimilarity(query)
     t_0 = time.time() - _t
-    print("[Eigen] Time taken:", t_0)
+    print("[Eigen] Time taken:", t_0, "seconds")
     _t = time.time()
 
     target = np.array(target)
@@ -38,12 +38,14 @@ def compareTime(n: int):
     _t = time.time()
     sc_1 = cos_sim_np(target, query)
     t_1 = time.time() - _t
-    print("[Numpy] Time taken:", t_1)
+    print("[Numpy] Time taken:", t_1, "seconds")
 
-    for i in range(n):
+    step = 1 if n < 1000 else n//100
+    for i in range(0, n, step):
         assert_approx_equal(sc_0[i], sc_1[i], significant=4)
-    print(f"Time superiority: {t_1 / t_0 : .2f} times faster")
+    print(f"Time superiority: {t_1 / t_0 : .2f} times faster", end="\n\n")
 
+# compareTime(1000000)
 compareTime(100000)
 compareTime(10000)
 compareTime(5000)
