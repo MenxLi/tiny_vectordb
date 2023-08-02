@@ -1,4 +1,6 @@
+#include "common.h"
 #include "vecdbImpl.h"
+#include <vector>
 
 namespace py = pybind11;
 
@@ -6,12 +8,14 @@ template <typename NumT>
 VectorCollectionImpl<NumT>::VectorCollectionImpl(){
     vector_chunk = new MatrixF(0, FEAT_DIM);
     identifiers = new StringVector();
+    // searcher = new SearchAlgorithm::Searcher<NumT>();
 }
 
 template <typename NumT>
 VectorCollectionImpl<NumT>::~VectorCollectionImpl(){
     delete vector_chunk;
     delete identifiers;
+    // delete searcher;
 }
 
 template <typename NumT> 
@@ -130,6 +134,16 @@ void VectorCollectionImpl<NumT>::deleteBulk(const StringVector& ids_del){
 }
 
 template <typename NumT>
+std::vector<float> VectorCollectionImpl<NumT>::scores(const std::vector<NumT> &query){
+    if (query.size() != FEAT_DIM){
+        throw std::runtime_error("query size not match");
+    }
+    Eigen::Map<const Eigen::Matrix<NumT, FEAT_DIM, 1>> query_vec(query.data(), query.size());
+    Eigen::Matrix<NumT, Eigen::Dynamic, 1> search_scores = (*vector_chunk) * query_vec.transpose();
+    return std::vector<float>(search_scores.data(), search_scores.data() + search_scores.size());
+}
+
+template <typename NumT>
 void VectorCollectionImpl<NumT>::print(){
     // for debug
     std::cout << "VectorCollectionImpl" << std::endl;
@@ -154,4 +168,9 @@ PYBIND11_MODULE(MODULE_NAME, m){
         .def("get", &VectorCollectionImpl<num_t>::get)
         .def("deleteBulk", &VectorCollectionImpl<num_t>::deleteBulk)
         .def("print", &VectorCollectionImpl<num_t>::print);
+        // .def("scores", &VectorCollectionImpl<num_t>::scores);
+    
+    // py::class_ < SearchAlgorithm::Searcher<num_t> >(m, "Searcher")
+    //     .def(py::init<>())
+    //     .def("scores", &SearchAlgorithm::Searcher<num_t>::scores);
 }

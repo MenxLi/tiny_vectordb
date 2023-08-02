@@ -1,7 +1,8 @@
 #pragma once
 
+// #include "searchAlgorithm.h"
 #include "common.h"
-#include "searchAlgorithm.h"
+#include <vector>
 
 template <typename NumT>
 class VectorCollectionImpl{
@@ -14,6 +15,8 @@ public:
     std::vector<NumT> get(std::string& id);
     void deleteBulk(const StringVector& ids);
 
+    std::vector<float> scores(const std::vector<NumT>& query);
+
     void print();   // for debug
 private:
     static const int dim = FEAT_DIM;
@@ -22,5 +25,5 @@ private:
     std::map<std::string, int> id2idx_;
     void reIndex();
 
-    SearchAlgorithm::Searcher<NumT>* searcher;
+    // SearchAlgorithm::Searcher<NumT>* searcher;
 };

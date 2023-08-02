@@ -5,7 +5,9 @@ namespace SearchAlgorithm {
 
 template <typename NumT>
 class Searcher{
-    Eigen::Vector<float, Eigen::Dynamic> score(MatrixF* target, const std::vector<NumT>& query);
+public:
+    Searcher();
+    Eigen::Vector<float, Eigen::Dynamic> scores(MatrixF& target, const std::vector<NumT>& query);
 };
 
 }

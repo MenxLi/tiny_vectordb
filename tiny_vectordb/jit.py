@@ -55,13 +55,14 @@ def _writeNinja(feat_dim: int):
         if platform.system() == "Darwin":
             link_flags.append("-undefined dynamic_lookup")
 
-        to_compile = [ "vecdbImpl", "searchAlgorithm" ]
+        to_compile = [ "vecdbImpl"]
 
         cxx = "g++"
 
         writer.variable("CXX", cxx)
         writer.variable("CXX_FLAGS", " ".join(cxx_flags))
         writer.variable("LINK_FLAGS", " ".join(link_flags))
+
         writer.rule("compile", "$CXX -MMD -MF $out.d $CXX_FLAGS $in -c -o $out", depfile="$out.d", description="compile $out")
         for _m in to_compile:
             writer.build(os.path.join(BIN_DIR, f"{_m}.o"), "compile", os.path.join(SRC_DIR, f"{_m}.cpp"))
