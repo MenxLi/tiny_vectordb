@@ -1,5 +1,5 @@
 import os
-from tiny_vectordb.vecdb import VectorCollection
+from tiny_vectordb import VectorCollection
 
 LEN = 16
 
