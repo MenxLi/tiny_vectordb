@@ -43,14 +43,14 @@ def _writeNinja(feat_dim: int):
             ## Optimization flags
             "-O2",
             "-funroll-loops",
-            "-march=native",
-            "-mtune=native",
+            # "-march=native",
+            # "-mtune=native",
+            # "-mavx512f",
         ]
 
         link_flags = [
             "-shared",
             "-lstdc++",
-            "-static",      # must be static! as we will compile multiple modules with different feat_dim
         ]
         if platform.system() == "Darwin":
             link_flags.append("-undefined dynamic_lookup")
@@ -65,10 +65,10 @@ def _writeNinja(feat_dim: int):
 
         writer.rule("compile", "$CXX -MMD -MF $out.d $CXX_FLAGS $in -c -o $out", depfile="$out.d", description="compile $out")
         for _m in to_compile:
-            writer.build(os.path.join(BIN_DIR, f"{_m}.o"), "compile", os.path.join(SRC_DIR, f"{_m}.cpp"))
+            writer.build(os.path.join(BIN_DIR, f"{_m}{feat_dim}.o"), "compile", os.path.join(SRC_DIR, f"{_m}.cpp"))
         
         writer.rule("link", "$CXX $LINK_FLAGS $in -o $out", description="link $out")
-        writer.build(os.path.join(BIN_DIR, f"{module_name}{ext_suffix}"), "link", [os.path.join(BIN_DIR, f"{_m}.o") for _m in to_compile])
+        writer.build(os.path.join(BIN_DIR, f"{module_name}{ext_suffix}"), "link", [os.path.join(BIN_DIR, f"{_m}{feat_dim}.o") for _m in to_compile])
 
 def _get_module_name(feat_dim):
     return f"vecdbImpl{feat_dim}"
