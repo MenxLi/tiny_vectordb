@@ -1,23 +1,28 @@
-import os
+import time
+import numpy as np
 from tiny_vectordb import VectorCollection
 
 LEN = 16
+N = 16
 
 collection = VectorCollection[float]("test", LEN)
+if not collection.has("-1"):
+    collection.insert("-1", [float(x) for x in range(LEN)])
 
-ids = [str(x) for x in range(2)]
-vectors = [[float(x) for x in range(LEN)] for _ in range(2)]
+np.random.seed(0)
+vectors = np.random.rand(N, LEN).tolist()
+ids = [str(x) for x in range(N)]
 
 collection.addBulk(ids, vectors)
-collection.insert("8", [float(x) for x in range(LEN)])
 
-assert collection.has("8")
-assert collection.get("8") == [float(x) for x in range(LEN)]
-assert collection.get("9") == None
+query = [float(x) for x in range(LEN)]
+target = vectors
+assert collection.has("-1")
+assert collection.get("-1") == [float(x) for x in range(LEN)]
 
-collection.deleteBulk(["8", "0"])
-assert not collection.has("8")
+assert collection.get("100") == None
+
+collection.deleteBulk(["-1", "0"])
+assert not collection.has("-1")
 assert not collection.has("0")
 assert collection.has("1")
-
-collection._impl.print()
