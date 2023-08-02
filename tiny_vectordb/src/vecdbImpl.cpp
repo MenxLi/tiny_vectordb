@@ -1,11 +1,11 @@
-#include "vecdb_common.h"
+#include "vecdbImpl.h"
 
 namespace py = pybind11;
 
 template <typename NumT>
 VectorCollectionImpl<NumT>::VectorCollectionImpl(){
     vector_chunk = new MatrixF(0, FEAT_DIM);
-    identifiers = new std::vector<std::string>();
+    identifiers = new StringVector();
 }
 
 template <typename NumT>
@@ -26,7 +26,7 @@ void VectorCollectionImpl<NumT>::reIndex(){
 }
 
 template <typename NumT>
-void VectorCollectionImpl<NumT>::addBulk(std::vector<std::string> ids, const std::vector<std::vector<NumT>> vectors){
+void VectorCollectionImpl<NumT>::addBulk(StringVector ids, const std::vector<std::vector<NumT>> vectors){
     if (ids.size() != vectors.size()){
         throw std::runtime_error("ids and vectors size not match");
     }
@@ -87,7 +87,7 @@ std::vector<NumT> VectorCollectionImpl<NumT>::get(std::string& id){
 }
 
 template <typename NumT>
-void VectorCollectionImpl<NumT>::deleteBulk(const std::vector<std::string>& ids_del){
+void VectorCollectionImpl<NumT>::deleteBulk(const StringVector& ids_del){
     // check if all ids exist and gather all indexes to be deleted
     int new_size = vector_chunk->rows() - ids_del.size();
     std::unique_ptr<int> delete_rowIndexes = std::unique_ptr<int>(new int[ids_del.size()]);
@@ -114,7 +114,7 @@ void VectorCollectionImpl<NumT>::deleteBulk(const std::vector<std::string>& ids_
 
     // allocate new matrix and identifiers
     MatrixF* new_chunk = new MatrixF(new_size, FEAT_DIM);
-    std::vector<std::string>* new_identifiers = new std::vector<std::string>(new_size);
+    StringVector* new_identifiers = new StringVector(new_size);
 
     for (int i = 0; i < vector_chunk->rows() - ids_del.size(); i++){
         new_chunk->row(i) = vector_chunk->row(keep_rowIndexes.get()[i]);
