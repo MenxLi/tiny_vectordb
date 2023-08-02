@@ -1,6 +1,5 @@
 #pragma once
 
-#include "searchAlgorithm.hpp"
 #include "common.h"
 #include <vector>
 
@@ -24,6 +23,4 @@ private:
     MatrixF* vector_chunk;
     std::map<std::string, int> id2idx_;
     void reIndex();
-
-    SearchAlgorithm::Searcher<NumT>* searcher;
 };

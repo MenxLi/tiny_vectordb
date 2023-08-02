@@ -1,4 +1,5 @@
 #include "common.h"
+#include "searchAlgorithm.hpp"
 #include "vecdbImpl.h"
 #include <vector>
 
@@ -8,14 +9,12 @@ template <typename NumT>
 VectorCollectionImpl<NumT>::VectorCollectionImpl(){
     vector_chunk = new MatrixF(0, FEAT_DIM);
     identifiers = new StringVector();
-    searcher = new SearchAlgorithm::Searcher<NumT>();
 }
 
 template <typename NumT>
 VectorCollectionImpl<NumT>::~VectorCollectionImpl(){
     delete vector_chunk;
     delete identifiers;
-    delete searcher;
 }
 
 template <typename NumT> 
@@ -135,7 +134,7 @@ void VectorCollectionImpl<NumT>::deleteBulk(const StringVector& ids_del){
 
 template <typename NumT>
 std::vector<float> VectorCollectionImpl<NumT>::score(const std::vector<NumT> &query){
-    auto search_scores = searcher->cosineSimilarity(*vector_chunk, query);
+    auto search_scores = SearchAlgorithm::cosineSimilarity(*vector_chunk, query);
     return std::vector<float>(search_scores.data(), search_scores.data() + search_scores.size());
 }
 
