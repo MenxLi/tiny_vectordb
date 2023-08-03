@@ -1,4 +1,5 @@
 #include "common.h"
+#include "pybind11/attr.h"
 #include "pybind11/cast.h"
 #include "pybind11/pytypes.h"
 #include "searchAlgorithm.hpp"
@@ -261,7 +262,7 @@ void VectorCollectionImpl<NumT>::print(){
 PYBIND11_MODULE(MODULE_NAME, m){
     m.doc() = "pybind11 vecdbImpl plugin";
 
-    py::class_< VectorCollectionImpl<num_t> >(m, "VectorCollectionImpl")
+    py::class_< VectorCollectionImpl<num_t> >(m, "VectorCollectionImpl", py::module_local())
         .def(py::init<>())
         .def("addBulk", &VectorCollectionImpl<num_t>::addBulk)
         .def("addRawEncBulk", &VectorCollectionImpl<num_t>::addRawEncBulk)
