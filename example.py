@@ -16,9 +16,9 @@ database = VectorDatabase("test.db", collection_configs)
 
 collection = database["hello"]
 
-# 500 vectors of 256 dimension
-vectors = [[random.random() for _ in range(256)] for _ in range(500)]
-vector_ids = [f"vector_{i}" for i in range(500)]
+# 50 vectors of 256 dimension
+vectors = [[random.random() for _ in range(256)] for _ in range(50)]
+vector_ids = [f"vector_{i}" for i in range(50)]
 
 collection.addBulk(vector_ids, vectors)
 
