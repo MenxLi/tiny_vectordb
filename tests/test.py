@@ -9,7 +9,7 @@ VectorDatabase.VERBOSE = True
 database = VectorDatabase("test.db", [{ "name": "test", "dimension": LEN, }])
 collection = database.getCollection("test")
 if not collection.has("-1"):
-    collection.insert("-1", [float(x) for x in range(LEN)])
+    collection.addBulk(["-1"], [[float(x) for x in range(LEN)]])
 
 np.random.seed(0)
 vectors = np.random.rand(N, LEN).tolist()

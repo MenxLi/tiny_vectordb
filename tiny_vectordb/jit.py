@@ -10,10 +10,9 @@ __this_dir = os.path.abspath(os.path.realpath(__this_dir))
 SRC_DIR = os.path.join(__this_dir, "src")
 HEADER_DIR = os.path.join(__this_dir, "include")
 BUILD_DIR = os.path.join(__this_dir, "build")
-BIN_DIR = os.path.join(BUILD_DIR, "lib")
+BIN_DIR = os.path.join(BUILD_DIR, "bin")
 
 eigen_src_path = os.path.join(__this_dir, "External", "eigen")
-ninja_build_file = os.path.join(BUILD_DIR, "build.ninja")
 
 for _d in [BUILD_DIR, BIN_DIR]:
     if not os.path.exists(_d):
@@ -21,6 +20,13 @@ for _d in [BUILD_DIR, BIN_DIR]:
 
 def _writeNinja(feat_dim: int):
     module_name = _get_module_name(feat_dim)
+    bin_dir = os.path.join(BIN_DIR, module_name)
+    script_dir = os.path.join(BUILD_DIR, "scripts_"+ module_name)
+    lib_dir = os.path.join(BIN_DIR, "lib")
+    ninja_build_file = os.path.join(script_dir, "build.ninja")
+    for _d in [bin_dir, lib_dir, script_dir]:
+        if not os.path.exists(_d):
+            os.mkdir(_d)
 
     ext_suffix = sysconfig.get_config_var("EXT_SUFFIX")
     py_includes = sysconfig.get_config_var('INCLUDEPY')
@@ -66,19 +72,23 @@ def _writeNinja(feat_dim: int):
 
         writer.rule("compile", "$CXX -MMD -MF $out.d $CXX_FLAGS $in -c -o $out", depfile="$out.d", description="compile $out")
         for _m in to_compile:
-            writer.build(os.path.join(BIN_DIR, f"{_m}{feat_dim}.o"), "compile", os.path.join(SRC_DIR, f"{_m}.cpp"))
+            writer.build(os.path.join(bin_dir, f"{_m}{feat_dim}.o"), "compile", os.path.join(SRC_DIR, f"{_m}.cpp"))
         for _m in to_compile_lib:
-            writer.build(os.path.join(BIN_DIR, f"{_m}.o"), "compile", os.path.join(SRC_DIR, f"{_m}.cpp"))
+            writer.build(os.path.join(lib_dir, f"{_m}.o"), "compile", os.path.join(SRC_DIR, f"{_m}.cpp"))
         
         writer.rule("link", "$CXX $LINK_FLAGS $in -o $out", description="link $out")
-        writer.build(os.path.join(BIN_DIR, f"{module_name}{ext_suffix}"), "link", \
-                     [os.path.join(BIN_DIR, f"{_m}{feat_dim}.o") for _m in to_compile] + [os.path.join(BIN_DIR, f"{_m}.o") for _m in to_compile_lib])
+        writer.build(os.path.join(bin_dir, f"{module_name}{ext_suffix}"), "link", \
+                        [os.path.join(bin_dir, f"{_m}{feat_dim}.o") for _m in to_compile] + \
+                        [os.path.join(lib_dir, f"{_m}.o") for _m in to_compile_lib])
+        
+        return module_name, script_dir, bin_dir
 
 def _get_module_name(feat_dim):
     return f"vecdbImpl{feat_dim}"
 
 def compile(feat_dim, quite = False) -> str:
-    _writeNinja(feat_dim)
+    module_name, script_dir, bin_dir = _writeNinja(feat_dim)
+
     def print_(*args, **kwargs):
         if not quite:
             print(*args, **kwargs)
@@ -87,14 +97,14 @@ def compile(feat_dim, quite = False) -> str:
     print_("\033[1;30m", end="\r")
     print_("----------------------------------------")
 
-    subprocess.check_call(["ninja", "-t", "commands"], cwd = BUILD_DIR, stdout=SP_STDOUT)
+    subprocess.check_call(["ninja", "-t", "commands"], cwd = script_dir, stdout=SP_STDOUT)
     print_("----------------------------------------")
 
-    subprocess.check_call("ninja", cwd = BUILD_DIR, stdout=SP_STDOUT)
+    subprocess.check_call("ninja", cwd = script_dir, stdout=SP_STDOUT)
 
-    with open(os.path.join(BUILD_DIR, "compile_commands.json"), "w") as f:
+    with open(os.path.join(bin_dir, "compile_commands.json"), "w") as f:
         # ninja -t compdb > compile_commands.json
-        subprocess.check_call(["ninja", "-t", "compdb"], cwd = BUILD_DIR, stdout=f, stderr=SP_STDOUT)
+        subprocess.check_call(["ninja", "-t", "compdb"], cwd = script_dir, stdout=f, stderr=SP_STDOUT)
 
     print_("\033[0m", end="\r")
-    return _get_module_name(feat_dim)
+    return f"{bin_dir}.{module_name}".split(os.path.sep)[-1]
