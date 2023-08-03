@@ -190,6 +190,23 @@ std::vector<float> VectorCollectionImpl<NumT>::score(const std::vector<NumT> &qu
 }
 
 template <typename NumT>
+py::tuple VectorCollectionImpl<NumT>::search(const std::vector<NumT>& query, int topk){
+    if (topk > size() or topk == -1){
+        topk = size();
+    }
+    Eigen::Vector<float, Eigen::Dynamic> search_scores = SearchAlgorithm::cosineSimilarity(*vector_chunk, query);
+    std::vector<int> topk_indexes = SearchAlgorithm::topKIndexes(search_scores, topk);
+
+    StringVector topk_ids = StringVector(topk);
+    std::vector<float> topk_scores = std::vector<float>(topk);
+    for (int i = 0; i < topk; i++){
+        topk_ids[i] = identifiers->at(topk_indexes[i]);
+        topk_scores[i] = search_scores[topk_indexes[i]];
+    }
+    return py::make_tuple(topk_ids, topk_scores);
+}
+
+template <typename NumT>
 py::dict VectorCollectionImpl<NumT>::flush(){
     py::dict ret;
 
@@ -254,8 +271,9 @@ PYBIND11_MODULE(MODULE_NAME, m){
         .def("get", &VectorCollectionImpl<num_t>::get)
         .def("deleteBulk", &VectorCollectionImpl<num_t>::deleteBulk)
         .def("print", &VectorCollectionImpl<num_t>::print)
-        .def("flush", &VectorCollectionImpl<num_t>::flush)
-        .def("score", &VectorCollectionImpl<num_t>::score);
+        .def("search", &VectorCollectionImpl<num_t>::search)
+        .def("score", &VectorCollectionImpl<num_t>::score)
+        .def("flush", &VectorCollectionImpl<num_t>::flush);
     
     auto m_enc = m.def_submodule("enc");
     m_enc.def("encode", &VectorStringEncode::encode<num_t>);

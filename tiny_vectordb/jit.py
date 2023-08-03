@@ -56,7 +56,7 @@ def _writeNinja(feat_dim: int):
             link_flags.append("-undefined dynamic_lookup")
 
         to_compile = [ "vecdbImpl", ]
-        to_compile_lib = [ "diskIO", "b64enc" ]
+        to_compile_lib = [ "diskIO", "b64enc", "searchAlgorithm" ]
 
         cxx = "g++"
 

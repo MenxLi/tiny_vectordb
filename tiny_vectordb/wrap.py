@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Union, TypeVar, Generic, Optional, TypedDict
+from typing import Union, TypeVar, Generic, Optional, TypedDict, Optional
 from .jit import BIN_DIR, compile
 import sys
 from importlib import import_module
@@ -14,12 +14,12 @@ class CollectionConfig(TypedDict):
     dimension: int
 
 class VectorDatabase:
-
+    VERBOSE = False
     def __init__(self, path: str, collection_configs: list[CollectionConfig]):
         self._collections: dict[str, VectorCollection] = {}
         self.__disk_io = SqliteIO(path)
         for config in collection_configs:
-            self._collections[config['name']] = VectorCollection(self, **config)
+            self._collections[config['name']] = VectorCollection(self, quite_loading=not self.VERBOSE, **config)
         self._initCollections()
     
     @property
@@ -34,6 +34,12 @@ class VectorDatabase:
             if table_names.__contains__(name):
                 self.getCollection(name).loadFromDisk()
             self.disk_io.touchTable(name)
+    
+    def __getitem__(self, name: str) -> VectorCollection:
+        return self.getCollection(name)
+    
+    def __len__(self) -> int:
+        return len(self._collections)
 
     def getCollection(self, name: str) -> VectorCollection:
         return self._collections[name]
@@ -52,7 +58,10 @@ class VectorDatabase:
 
 class VectorCollection(Generic[NumVar]):
 
-    def __init__(self, parent: VectorDatabase, name: str, dimension: int, quite_loading = True):
+    def __init__(self, parent: Optional[VectorDatabase], name: str, dimension: int, quite_loading = True):
+        """
+        set parent to None if you don't want to save changes to disk
+        """
         if not sys.path.__contains__(BIN_DIR):
             if not quite_loading:
                 print("Adding", BIN_DIR, "to sys.path")
@@ -80,9 +89,9 @@ class VectorCollection(Generic[NumVar]):
     def addBulk(self, ids: list[str], vectors: list[list[NumVar]]):
         self._impl.addBulk(ids, vectors)
     
-    def insert(self, id: str, vector: list[NumVar]) -> bool:
-        # maybe delete this method
-        self._impl.addBulk([id], [vector])
+    # def insert(self, id: str, vector: list[NumVar]) -> bool:
+    #     # maybe delete this method
+    #     self._impl.addBulk([id], [vector])
     
     def has(self, id: str) -> bool:
         return self._impl.has(id)
@@ -97,10 +106,10 @@ class VectorCollection(Generic[NumVar]):
         else:
             return None
 
-    def query(self, vector: list[NumVar], k: int = -1) -> tuple[list[str], list[float]]:
-        """Return a tuple of (ids, distances)"""
-        ...
-    
+    def search(self, query: list[NumVar], k: int = -1) -> tuple[list[str], list[float]]:
+        """Return a tuple of (ids, scores)"""
+        return self._impl.search(query, k)
+
     def all(self) -> tuple[list[str], list[list[NumVar]]]:
         ...
     
@@ -108,11 +117,15 @@ class VectorCollection(Generic[NumVar]):
         self._impl.deleteBulk(ids)
     
     def loadFromDisk(self) -> None:
+        if not self.database:
+            return 
         ids, enc_vectors = self.database.disk_io.getTableData(self.name)
         self._impl.addRawEncBulk(ids, enc_vectors)
 
     def flush(self) -> bool:
         chages = self._impl.flush()
+        if not self.database:
+            return 
         ids_add, enc_vectors_add = chages["ADD"]
         for identifier, enc_vector in zip(ids_add, enc_vectors_add):
             self.database.disk_io.insetToTable(self.name, identifier, enc_vector)

@@ -29,6 +29,8 @@ public:
     void deleteBulk(const StringVector& ids);
     // void removeBulk(const StringVector& ids);
 
+    // return the topk ids and scores
+    py::tuple search(const std::vector<NumT>& query, int topk = -1);
     std::vector<float> score(const std::vector<NumT>& query);
 
     // return the gathered modifications in python dict and set mod_map to empty

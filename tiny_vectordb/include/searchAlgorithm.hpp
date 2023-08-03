@@ -3,6 +3,8 @@
 
 namespace SearchAlgorithm {
 
+std::vector<int> topKIndexes(const Eigen::Vector<float, Eigen::Dynamic> scores, int k);
+
 /* target: (N, feat_dim), query: (feat_dim, ) */
 template <typename NumT>
 inline Eigen::Vector<float, Eigen::Dynamic> cosineSimilarity(const MatrixF& target, const Eigen::Vector<NumT, FEAT_DIM>& query_matrix){

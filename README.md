@@ -6,7 +6,41 @@ and speedup the vector operation by using [Eigen](https://eigen.tuxfamily.org/in
 - Process with only python list, without requiring any other third-party data format.
 - The actual storage is base-64 encoded string, in a sqlite database.
 
-**About 10x Faster than numpy-based vector operation.**
+**More than 10x Faster than numpy-based vector operation.**
 
 **Under development...**
 ( Only on Linux and Mac OS with `g++`/`clang++` for now, need to write compile script for Windows on your own, refer to `tiny_vectordb.jit` )
+
+
+Usage:
+```python
+from tiny_vectordb import VectorDatabase
+import random
+
+collection_configs = {
+    {
+        "name": "hello",
+        "dimension": 256,
+    },
+    {
+        "name": "world",
+        "dimension": 1000,
+    }
+}
+
+database = VectorDatabase("test.db", collection_configs)
+
+collection = database["hello"]
+
+# 500 vectors of 256 dimension
+vectors = [[random.random() for _ in range(256)] for _ in range(500)]
+vector_ids = [f"vector_{i}" for i in range(500)]
+
+collection.addBulk(vector_ids, vectors)
+
+search_ids, search_scores = collection.search([random.random() for _ in range(256)], k=10)
+
+# save to disk
+database.flush()
+database.commit()
+```
