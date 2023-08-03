@@ -13,13 +13,13 @@ class CollectionConfig(TypedDict):
     name: str
     dimension: int
 
-class VectorDatabase:
+class VectorDatabase(dict[str, "VectorCollection[float]"]):
     VERBOSE = False
     def __init__(self, path: str, collection_configs: list[CollectionConfig]):
-        self._collections: dict[str, VectorCollection] = {}
+        super().__init__()
         self.__disk_io = SqliteIO(path)
         for config in collection_configs:
-            self._collections[config['name']] = VectorCollection(self, quite_loading=not self.VERBOSE, **config)
+            self[config['name']] = VectorCollection[float](self, quite_loading=not self.VERBOSE, **config)
         self._initCollections()
     
     @property
@@ -29,32 +29,22 @@ class VectorDatabase:
     def _initCollections(self) -> bool:
         """Load collection from disk if exists"""
         table_names = self.disk_io.getTableNames()
-        collection_name = self.getCollectionNames()
-        for name in collection_name:
+        for name in self.keys():
             if table_names.__contains__(name):
                 self.getCollection(name).loadFromDisk()
             self.disk_io.touchTable(name)
     
-    def __getitem__(self, name: str) -> VectorCollection:
-        return self.getCollection(name)
-    
-    def __len__(self) -> int:
-        return len(self._collections)
-
     def getCollection(self, name: str) -> VectorCollection:
-        return self._collections[name]
+        return self[name]
     
     def getCollectionNames(self) -> list[str]:
-        return list(self._collections.keys())
+        return list(self.keys())
 
-    def keys(self) -> list[str]:
-        return self.getCollectionNames()
-    
     def flush(self):
         """
         Flush all changes to sqlite database, but not commit
         """
-        for collection in self._collections.values():
+        for collection in self.values():
             collection.flush()
     
     def commit(self):
