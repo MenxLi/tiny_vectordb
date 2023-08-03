@@ -84,44 +84,79 @@ class VectorCollection(Generic[NumVar]):
         return self.__impl
     
     def addBlock(self, ids: list[str], vectors: list[list[NumVar]]):
+        """
+        Add a bulk of elements, will raise error if id exists
+        """
         self._impl.addBulk(ids, vectors)
     
     def deleteBlock(self, ids: list[str]) -> None:
+        """
+        Delete a bulk of elements, will raise error if id not exists
+        """
         self._impl.deleteBulk(ids)
     
     def setBlock(self, ids: list[str], vectors: list[list[NumVar]]) -> None:
-        ...
+        """
+        For every element in ids, set the corresponding vector
+        Add if not exists, update if exists
+        """
+        self._impl.setBulk(ids, vectors)
 
     def update(self, id: str, vector: list[NumVar]) -> bool:
+        """
+        Change a vector, will raise error if id not exists
+        """
         return self._impl.set(id, vector)
 
     def has(self, id: str) -> bool:
+        """
+        Check if id exists
+        """
         return self._impl.has(id)
     
     def keys(self) -> list[str]:
-        ...
+        """
+        Return all ids in this collection
+        """
+        return self._impl.getAllIds()
 
-    def get(self, id: str) -> Optional[list[NumVar]]:
+    def get(self, id: str) -> list[NumVar]:
+        """
+        Get a vector by id, return an empty list if not exists
+        """
         ret = self._impl.get(id)
         if ret:
             return ret
         else:
             return None
     
-    def getBlock(self, ids: list[str]) -> list[Optional[list[NumVar]]]:
-        ...
+    def getBlock(self, ids: list[str]) -> list[list[NumVar]]:
+        """
+        Get a bulk of vectors by ids, return list element can be empty if not exists
+        """
+        self._impl.getBulk(ids)
     
     def search(self, query: list[NumVar], k: int = -1) -> tuple[list[str], list[float]]:
         """Return a tuple of (ids, scores)"""
         return self._impl.search(query, k)
     
     def loadFromDisk(self) -> None:
+        """
+        Load all data of the collection from disk, 
+        Should be called when the collection is attached to a database and is empty
+        """
         if not self.database:
             return 
+        if len(self) != 0:
+            raise RuntimeError("Collection is not empty, cannot load from disk")
+        
         ids, enc_vectors = self.database.disk_io.getTableData(self.name)
         self._impl.addRawEncBulk(ids, enc_vectors)
 
     def flush(self) -> bool:
+        """
+        Load all changes to sqlite database memory, but not save to disk
+        """
         chages = self._impl.flush()
         if not self.database:
             return 

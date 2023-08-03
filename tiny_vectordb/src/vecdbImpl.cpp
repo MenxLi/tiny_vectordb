@@ -97,6 +97,44 @@ void VectorCollectionImpl<NumT>::addRawBulk(StringVector ids, const std::vector<
     }
 }
 
+template <typename NumT>
+void VectorCollectionImpl<NumT>::setBulk(StringVector ids, const std::vector<std::vector<NumT>> vectors){
+    if (ids.size() != vectors.size()){
+        throw std::runtime_error("ids and vectors size not match");
+    }
+
+    // a vector to mark which id need to add
+    std::vector<int> to_add_index = std::vector<int>();
+    to_add_index.reserve(ids.size());   // reserve memory to avoid re-allocate on push_back
+
+    // duplicate ids check
+    std::set<std::string> id_set(ids.begin(), ids.end());
+    if (id_set.size() != ids.size()){
+        throw std::runtime_error("ids are not unique");
+    }
+    for (int i = 0; i < ids.size(); i++){
+        if (has(ids[i])){
+            // if exist, update
+            update(ids[i], vectors[i]);
+        }
+        else{
+            // not exist, mark as need to add
+            to_add_index.push_back(i);
+        }
+    }
+
+    // collect ids and vectors to add
+    StringVector to_add_ids = StringVector(to_add_index.size());
+    std::vector<std::vector<NumT>> to_add_vectors = std::vector<std::vector<NumT>>(to_add_index.size());
+    for (int i = 0; i < to_add_index.size(); i++){
+        to_add_ids[i] = ids[to_add_index[i]];
+        to_add_vectors[i] = vectors[to_add_index[i]];
+    }
+
+    // add new vectors
+    addBulk(to_add_ids, to_add_vectors);
+}
+
 template <typename NumT> 
 bool VectorCollectionImpl<NumT>::has(const std::string& id){
     // return std::find(identifiers.begin(), identifiers.end(), id) != identifiers.end();
@@ -128,6 +166,20 @@ std::vector<NumT> VectorCollectionImpl<NumT>::get(const std::string& id){
     }
     int idx = it->second;
     return std::vector<NumT>(vector_chunk->row(idx).data(), vector_chunk->row(idx).data() + FEAT_DIM);
+}
+
+template <typename NumT>
+std::vector<std::vector<NumT>> VectorCollectionImpl<NumT>::getBulk(const StringVector& ids){
+    std::vector<std::vector<NumT>> result(ids.size());
+    for (int i = 0; i < ids.size(); i++){
+        result[i] = get(ids[i]);
+    }
+    return result;
+}
+
+template <typename NumT>
+std::vector<std::string> VectorCollectionImpl<NumT>::getAllIds(){
+    return std::vector<std::string>(identifiers->begin(), identifiers->end());
 }
 
 template <typename NumT>
@@ -266,10 +318,13 @@ PYBIND11_MODULE(MODULE_NAME, m){
         .def(py::init<>())
         .def("addBulk", &VectorCollectionImpl<num_t>::addBulk)
         .def("addRawEncBulk", &VectorCollectionImpl<num_t>::addRawEncBulk)
+        .def("setBulk", &VectorCollectionImpl<num_t>::setBulk)
         .def("size", &VectorCollectionImpl<num_t>::size)
         .def("has", &VectorCollectionImpl<num_t>::has)
         .def("update", &VectorCollectionImpl<num_t>::update)
         .def("get", &VectorCollectionImpl<num_t>::get)
+        .def("getBulk", &VectorCollectionImpl<num_t>::getBulk)
+        .def("getAllIds", &VectorCollectionImpl<num_t>::getAllIds)
         .def("deleteBulk", &VectorCollectionImpl<num_t>::deleteBulk)
         .def("print", &VectorCollectionImpl<num_t>::print)
         .def("search", &VectorCollectionImpl<num_t>::search)

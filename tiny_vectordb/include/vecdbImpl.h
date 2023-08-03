@@ -22,9 +22,14 @@ public:
     void addRawEncBulk(StringVector ids, const std::vector<std::string> enc_vectors);
     void addRawBulk(StringVector ids, const std::vector<std::vector<NumT>> vectors);
 
+    // set will add the vector if the id does not exist, otherwise update the vector
+    void setBulk(StringVector ids, const std::vector<std::vector<NumT>> vectors);
+
     inline bool has(const std::string& id);
-    bool update(const std::string& id, const std::vector<NumT> vec);
-    std::vector<NumT> get(const std::string& id);
+    inline bool update(const std::string& id, const std::vector<NumT> vec);
+    inline std::vector<NumT> get(const std::string& id);
+    std::vector<std::vector<NumT>> getBulk(const StringVector& id);
+    StringVector getAllIds();
 
     void deleteBulk(const StringVector& ids);
     // void removeBulk(const StringVector& ids);
