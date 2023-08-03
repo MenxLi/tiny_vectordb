@@ -2,7 +2,12 @@
 
 #include "common.h"
 #include "diskIO.h"
+#include "pybind11/pytypes.h"
+#include "b64enc.h"
+#include <string>
 #include <vector>
+
+namespace py = pybind11;
 
 template <typename NumT>
 class VectorCollectionImpl{
@@ -12,18 +17,26 @@ public:
     int size();
 
     // add vectors to the collection, addBulk will log modification
-    // loadBulk will not log modification, and will not check id duplication
+    // addRaw will not log modification, and will not check id duplication
     void addBulk(StringVector ids, const std::vector<std::vector<NumT>> vectors);
+    void addRawEncBulk(StringVector ids, const std::vector<std::string> enc_vectors);
     void addRawBulk(StringVector ids, const std::vector<std::vector<NumT>> vectors);
 
-    bool has(std::string& id);
-    std::vector<NumT> get(std::string& id);
+    inline bool has(const std::string& id);
+    bool update(const std::string& id, const std::vector<NumT> vec);
+    std::vector<NumT> get(const std::string& id);
 
     void deleteBulk(const StringVector& ids);
     // void removeBulk(const StringVector& ids);
 
     std::vector<float> score(const std::vector<NumT>& query);
-    void flush();
+
+    // return the gathered modifications in python dict and set mod_map to empty
+    // the python dict is in the form of 
+    // {update / add: ([id1, id2, ...], [vector1, vector2, ...]) }
+    // or {delete: ([id1, id2, ...], )}
+    // the actual disk IO will be done in python
+    py::dict flush();
 
     void print();
 private:
@@ -43,3 +56,24 @@ private:
 
     // DiskIOVirtual *diskIO;
 };
+
+
+namespace VectorStringEncode {
+    template <typename NumT>
+    inline std::string encode(const std::vector<NumT>& vec){
+        std::vector<uchar> vec_uchar((uchar*)vec.data(), (uchar*)vec.data() + vec.size() * sizeof(NumT));
+        return base64_encode(vec_uchar);
+    }
+
+    template <typename NumT>
+    inline std::vector<NumT> decode(const std::string& encoded){
+        if (encoded.size() % 4 != 0){
+            throw std::runtime_error("invalid encoded string");
+        }
+        std::vector<uchar> vec_uchar = base64_decode(encoded);
+
+        // will this be unsafe?
+        std::vector<NumT> vec((NumT*)vec_uchar.data(), (NumT*)vec_uchar.data() + vec_uchar.size() / sizeof(NumT));
+        return vec;
+    }
+}

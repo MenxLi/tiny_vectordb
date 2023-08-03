@@ -27,25 +27,36 @@ class VectorDatabase:
 
 class VectorCollection(Generic[NumVar]):
 
-    def __init__(self, name: str, dimension: int, quite_loading = False):
+    def __init__(self, name: str, dimension: int, quite_loading = True):
         if not sys.path.__contains__(BIN_DIR):
             if not quite_loading:
                 print("Adding", BIN_DIR, "to sys.path")
             sys.path.append(BIN_DIR)
         _m_name = compile(dimension, quite = quite_loading)
-        self._impl = import_module(_m_name).VectorCollectionImpl()
+
+        self.__clib = import_module(_m_name)
+        self.__impl = self.__clib.VectorCollectionImpl()
+    
+    @property
+    def clib(self):
+        return self.__clib
+
+    @property
+    def _impl(self):
+        return self.__impl
     
     def addBulk(self, ids: list[str], vectors: list[list[NumVar]]):
         self._impl.addBulk(ids, vectors)
     
     def insert(self, id: str, vector: list[NumVar]) -> bool:
+        # maybe delete this method
         self._impl.addBulk([id], [vector])
     
-    def update(self, id: str, vector: list[NumVar]) -> bool:
-        ...
-
     def has(self, id: str) -> bool:
         return self._impl.has(id)
+    
+    def update(self, id: str, vector: list[NumVar]) -> bool:
+        return self._impl.set(id, vector)
 
     def get(self, id: str) -> Optional[list[NumVar]]:
         ret = self._impl.get(id)

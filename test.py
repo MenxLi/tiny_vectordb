@@ -5,7 +5,7 @@ from tiny_vectordb import VectorCollection
 LEN = 16
 N = 16
 
-collection = VectorCollection[float]("test", LEN)
+collection = VectorCollection[float]("test", LEN, quite_loading=False)
 if not collection.has("-1"):
     collection.insert("-1", [float(x) for x in range(LEN)])
 

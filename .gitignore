@@ -6,3 +6,7 @@ tiny_vectordb/build/*
 
 compile_commands.json
 Makefile
+
+.ipynb_checkpoints
+*.ipynb
+*.db

@@ -1,6 +1,9 @@
 #include "common.h"
+#include "pybind11/cast.h"
+#include "pybind11/pytypes.h"
 #include "searchAlgorithm.hpp"
 #include "vecdbImpl.h"
+#include <string>
 #include <vector>
 
 namespace py = pybind11;
@@ -53,6 +56,16 @@ void VectorCollectionImpl<NumT>::addBulk(StringVector ids, const std::vector<std
     }
 }
 
+
+template <typename NumT>
+void VectorCollectionImpl<NumT>::addRawEncBulk(StringVector ids, const std::vector<std::string> enc_vectors){
+    std::vector<std::vector<NumT>> vectors = std::vector<std::vector<NumT>>(enc_vectors.size());
+    for (int i = 0; i < enc_vectors.size(); i++){
+        vectors[i] = VectorStringEncode::decode<NumT>(enc_vectors[i]);
+    }
+    addRawBulk(ids, vectors);
+}
+
 template <typename NumT>
 void VectorCollectionImpl<NumT>::addRawBulk(StringVector ids, const std::vector<std::vector<NumT>> vectors){
     int old_size = vector_chunk->rows();
@@ -84,14 +97,30 @@ void VectorCollectionImpl<NumT>::addRawBulk(StringVector ids, const std::vector<
 }
 
 template <typename NumT> 
-inline bool VectorCollectionImpl<NumT>::has(std::string& id){
+bool VectorCollectionImpl<NumT>::has(const std::string& id){
     // return std::find(identifiers.begin(), identifiers.end(), id) != identifiers.end();
     return id2idx_.find(id) != id2idx_.end();
+}
 
+template <typename NumT>
+bool VectorCollectionImpl<NumT>::update(const std::string& id, std::vector<NumT> vec){
+    if (vec.size() != FEAT_DIM){
+        throw std::runtime_error("vector size not match");
+    }
+    if (!has(id)){
+        return false;
+    }
+
+    for (int i = 0; i < FEAT_DIM; i++){
+        (*vector_chunk)(id2idx_[id], i) = vec[i];
+    }
+    // record modification
+    mod_map[id] = ModificaionType::UPDATE;
+    return true;
 }
 
 template <typename NumT> 
-std::vector<NumT> VectorCollectionImpl<NumT>::get(std::string& id){
+std::vector<NumT> VectorCollectionImpl<NumT>::get(const std::string& id){
     auto it = id2idx_.find(id);
     if (it == id2idx_.end()){
         return std::vector<NumT>();
@@ -161,6 +190,45 @@ std::vector<float> VectorCollectionImpl<NumT>::score(const std::vector<NumT> &qu
 }
 
 template <typename NumT>
+py::dict VectorCollectionImpl<NumT>::flush(){
+    py::dict ret;
+
+    StringVector add_ids;
+    // std::vector<std::vector<NumT>> add_values;
+    std::vector<std::string> add_values;    // encode vector to string
+
+    StringVector update_ids;
+    // std::vector<std::vector<NumT>> update_values;
+    std::vector<std::string> update_values; // encode vector to string
+
+    StringVector delete_ids;
+
+    for (auto it = mod_map.begin(); it != mod_map.end(); it++){
+        if (it->second == ModificaionType::ADD){
+            add_ids.push_back(it->first);
+            std::string encoded = VectorStringEncode::encode(get(it->first));
+            add_values.push_back(encoded);
+        }
+        else if (it->second == ModificaionType::UPDATE){
+            update_ids.push_back(it->first);
+            std::string encoded = VectorStringEncode::encode(get(it->first));
+            update_values.push_back(encoded);
+        }
+        else{
+            delete_ids.push_back(it->first);
+        }
+    }
+
+    std::cout << "flush: " << add_ids.size() << " " << update_ids.size() << " " << delete_ids.size() << std::endl;
+
+    ret["ADD"] = py::make_tuple(add_ids, add_values);
+    ret["UPDATE"] = py::make_tuple(update_ids, update_values);
+    ret["DELETE"] = py::make_tuple(delete_ids, py::none());
+    mod_map.clear();
+    return ret;
+}
+
+template <typename NumT>
 void VectorCollectionImpl<NumT>::print(){
     // for debug
     std::cout << "VectorCollectionImpl" << std::endl;
@@ -180,10 +248,17 @@ PYBIND11_MODULE(MODULE_NAME, m){
     py::class_< VectorCollectionImpl<num_t> >(m, "VectorCollectionImpl")
         .def(py::init<>())
         .def("addBulk", &VectorCollectionImpl<num_t>::addBulk)
+        .def("addRawEncBulk", &VectorCollectionImpl<num_t>::addRawEncBulk)
         .def("size", &VectorCollectionImpl<num_t>::size)
         .def("has", &VectorCollectionImpl<num_t>::has)
+        .def("update", &VectorCollectionImpl<num_t>::update)
         .def("get", &VectorCollectionImpl<num_t>::get)
         .def("deleteBulk", &VectorCollectionImpl<num_t>::deleteBulk)
         .def("print", &VectorCollectionImpl<num_t>::print)
+        .def("flush", &VectorCollectionImpl<num_t>::flush)
         .def("score", &VectorCollectionImpl<num_t>::score);
+    
+    auto m_enc = m.def_submodule("enc");
+    m_enc.def("encode", &VectorStringEncode::encode<num_t>);
+    m_enc.def("decode", &VectorStringEncode::decode<num_t>);
 }
