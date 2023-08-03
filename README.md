@@ -27,7 +27,6 @@ Good to go!
 
 ### Usage:
 ```python
-import random
 from tiny_vectordb import VectorDatabase
 
 collection_configs = [
@@ -40,19 +39,24 @@ collection_configs = [
         "dimension": 1000,
     }
 ]
-
 database = VectorDatabase("test.db", collection_configs)
-
 collection = database["hello"]
+```
+For more usage, see `example.py`.
 
-# 50 vectors of 256 dimension
-vectors = [[random.random() for _ in range(256)] for _ in range(50)]
-vector_ids = [f"vector_{i}" for i in range(50)]
+---
 
-collection.addBlock(vector_ids, vectors)
+**Designing Note:**  
 
-search_ids, search_scores = collection.search([random.random() for _ in range(256)], k=10)
+1. No numpy array is used in the database, because I want it to be as lightweight as possible, and lists of numbers are eaiser to be converted into json for communication with http requests.
 
-database.flush()
-database.commit()
+2. The data are always stored in contiguous memory to ensure the best searching performance.  
+So the addition and deletion are preferred to be done in batches as they envolve memory reallocation.   
+Here are some useful functions for batch operations:
+```python
+class VectorCollection(Generic[NumVar]):
+    def addBlock(self, ids: list[str], vectors: list[list[NumVar]]) -> None:
+    def setBlock(self, ids: list[str], vectors: list[list[NumVar]]) -> None:
+    def deleteBlock(self, ids: list[str]) -> None:
+    def getBlock(self, ids: list[str]) -> list[list[NumVar]]:
 ```

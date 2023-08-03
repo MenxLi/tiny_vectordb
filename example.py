@@ -22,9 +22,10 @@ if os.path.exists("test.db"):
     else:
         exit("This script will raise error if test.db exists, for duplicate item addition")
 
+# create database will initialize all collections, 
+# for each dimension, a shared library will be compiled and loaded.
 print("Compiling...")
 database = VectorDatabase("test.db", collection_configs)
-
 collection = database["hello"]
 
 # 100 vectors of 256 dimension
