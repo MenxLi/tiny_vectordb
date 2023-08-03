@@ -1,18 +1,31 @@
+## Tiny Vector Database
 
-A tiny vector database for small projects (vectors are able to be stored in memory)
+A lightweight vector database designed for small projects.
 
-- It use jit compiling to speed up the vector operation by setting the vector size at compile time 
-and speedup the vector operation by using [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page).
-- Process with only python list, without requiring any other third-party data format.
-- The actual storage is base-64 encoded string, in a sqlite database.
+**Features**
+- Just-in-time (JIT) compiling to optimize vector operations by setting the vector size at compile time.
+- Accelerates vector operations using [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page).
+- Processes vectors using only Python lists, no need for any additional third-party data formats.
+- Stores vectors as base-64 encoded strings in a SQLite database.
 
-**More than 10x Faster than numpy-based vector operation.**
+**Performance**
+More than 10x Faster than numpy-based vector operations.
 
-**Under development...**
-( Only on Linux and Mac OS with `g++`/`clang++` for now, need to write compile script for Windows on your own, refer to `tiny_vectordb.jit` )
+### Development Status
 
+The project is currently under development. 
+It is compatible with Linux and Mac OS using g++ or clang++. 
+For Windows, you will need to write your own compile script. Please refer to the `tiny_vectordb.jit` file for more information.
 
-Usage:
+### Installation
+
+```bash
+git submodule update --init --recursive
+pip install -r requirements.txt
+```
+Good to go!
+
+### Usage:
 ```python
 import random
 from tiny_vectordb import VectorDatabase
