@@ -10,6 +10,8 @@
 #include <pybind11/stl.h>
 // #include <pybind11/eigen.h>
 
+#include <assert.h>
+
 #ifndef FEAT_DIM
 #define FEAT_DIM 768
 #endif

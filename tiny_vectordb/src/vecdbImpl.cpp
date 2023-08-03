@@ -53,7 +53,13 @@ void VectorCollectionImpl<NumT>::addBulk(StringVector ids, const std::vector<std
 
     // log modifications
     for (int i = 0; i < ids.size(); i++){
-        mod_map[ids[i]] = ModificaionType::ADD;
+        if (mod_map.find(ids[i]) != mod_map.end()){
+            assert(mod_map[ids[i]] == ModificaionType::DELETE && "Impossible error??");
+            mod_map[ids[i]] = ModificaionType::UPDATE;
+        }
+        else{
+            mod_map[ids[i]] = ModificaionType::ADD;
+        }
     }
 }
 
@@ -154,7 +160,13 @@ bool VectorCollectionImpl<NumT>::update(const std::string& id, std::vector<NumT>
         (*vector_chunk)(id2idx_[id], i) = vec[i];
     }
     // record modification
-    mod_map[id] = ModificaionType::UPDATE;
+    if (mod_map.find(id) == mod_map.end()){
+        mod_map[id] = ModificaionType::UPDATE;
+    }
+    else{
+        assert(mod_map[id] == ModificaionType::ADD && "Impossible error??");
+        // do nothing, it must be a ADD, keep it as ADD
+    }
     return true;
 }
 

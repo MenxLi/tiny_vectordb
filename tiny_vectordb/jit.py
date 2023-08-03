@@ -47,6 +47,7 @@ def _writeNinja(feat_dim: int):
             f"-DMODULE_NAME={module_name}",
 
             ## Optimization flags
+            "-DNDEBUG",
             "-O2",
             "-funroll-loops",
             # "-march=native",

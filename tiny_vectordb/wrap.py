@@ -134,7 +134,7 @@ class VectorCollection(Generic[NumVar]):
         """
         Get a bulk of vectors by ids, return list element can be empty if not exists
         """
-        self._impl.getBulk(ids)
+        return self._impl.getBulk(ids)
     
     def search(self, query: list[NumVar], k: int = -1) -> tuple[list[str], list[float]]:
         """Return a tuple of (ids, scores)"""
