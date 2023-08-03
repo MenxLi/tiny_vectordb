@@ -21,7 +21,7 @@ For Windows, you will need to write your own compile script. Please refer to the
 
 ```bash
 git submodule update --init --recursive
-pip install -r requirements.txt
+pip install -e .
 ```
 Good to go!
 
