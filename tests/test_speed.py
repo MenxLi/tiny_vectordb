@@ -36,7 +36,7 @@ def compareMMTime(n: int):
     query = [float(x) for x in range(LEN)]
     target = vectors
 
-    collection.addBulk(ids, vectors)
+    collection.addBlock(ids, vectors)
     _t = time.time()
     sc_0 = collection._impl.score(query)
     t_0 = time.time() - _t
@@ -66,7 +66,7 @@ def compareSearchTime(n:int, k:int = 16):
     query = [float(x) for x in range(LEN)]
     target = vectors
 
-    collection.addBulk(ids, vectors)
+    collection.addBlock(ids, vectors)
     _t = time.time()
     ids_0, scores_0 = collection.search(query, k)
     t_0 = time.time() - _t

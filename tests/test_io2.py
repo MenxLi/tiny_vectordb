@@ -16,9 +16,9 @@ np.random.seed(0)
 vectors = np.random.rand(n, LEN).tolist()
 ids = [str(x) for x in range(n)]
 
-collection.addBulk(ids, vectors)
+collection.addBlock(ids, vectors)
 print(collection["1"])
-collection.deleteBulk(["1", "2"])
+collection.deleteBlock(["1", "2"])
 collection._impl.update("3", np.zeros(LEN).tolist())
 
 collection._impl.print()

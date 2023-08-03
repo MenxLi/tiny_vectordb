@@ -8,7 +8,7 @@ A lightweight vector database designed for small projects.
 - Processes vectors using only Python lists, no need for any additional third-party data formats.
 - Stores vectors as base-64 encoded strings in a SQLite database.
 
-**Performance**
+**Performance**  
 More than 10x Faster than numpy-based vector operations.
 
 ### Development Status
@@ -49,7 +49,7 @@ collection = database["hello"]
 vectors = [[random.random() for _ in range(256)] for _ in range(50)]
 vector_ids = [f"vector_{i}" for i in range(50)]
 
-collection.addBulk(vector_ids, vectors)
+collection.addBlock(vector_ids, vectors)
 
 search_ids, search_scores = collection.search([random.random() for _ in range(256)], k=10)
 

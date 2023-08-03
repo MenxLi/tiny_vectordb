@@ -9,13 +9,13 @@ VectorDatabase.VERBOSE = True
 database = VectorDatabase("test.db", [{ "name": "test", "dimension": LEN, }])
 collection = database.getCollection("test")
 if not collection.has("-1"):
-    collection.addBulk(["-1"], [[float(x) for x in range(LEN)]])
+    collection.addBlock(["-1"], [[float(x) for x in range(LEN)]])
 
 np.random.seed(0)
 vectors = np.random.rand(N, LEN).tolist()
 ids = [str(x) for x in range(N)]
 
-collection.addBulk(ids, vectors)
+collection.addBlock(ids, vectors)
 
 query = [float(x) for x in range(LEN)]
 target = vectors
@@ -24,7 +24,7 @@ assert collection.get("-1") == [float(x) for x in range(LEN)]
 
 assert collection.get("100") == None
 
-collection.deleteBulk(["-1", "0"])
+collection.deleteBlock(["-1", "0"])
 assert not collection.has("-1")
 assert not collection.has("0")
 assert collection.has("1")

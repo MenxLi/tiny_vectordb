@@ -46,14 +46,21 @@ class VectorDatabase:
     
     def getCollectionNames(self) -> list[str]:
         return list(self._collections.keys())
+
+    def keys(self) -> list[str]:
+        return self.getCollectionNames()
     
     def flush(self):
-        """Flush all changes to sqlite database"""
+        """
+        Flush all changes to sqlite database, but not commit
+        """
         for collection in self._collections.values():
             collection.flush()
     
     def commit(self):
-        """Save all changes to disk"""
+        """
+        Save all changes to disk
+        """
         self.disk_io.commit()
 
 class VectorCollection(Generic[NumVar]):
@@ -86,18 +93,23 @@ class VectorCollection(Generic[NumVar]):
     def _impl(self):
         return self.__impl
     
-    def addBulk(self, ids: list[str], vectors: list[list[NumVar]]):
+    def addBlock(self, ids: list[str], vectors: list[list[NumVar]]):
         self._impl.addBulk(ids, vectors)
     
-    # def insert(self, id: str, vector: list[NumVar]) -> bool:
-    #     # maybe delete this method
-    #     self._impl.addBulk([id], [vector])
+    def deleteBlock(self, ids: list[str]) -> None:
+        self._impl.deleteBulk(ids)
     
+    def setBlock(self, ids: list[str], vectors: list[list[NumVar]]) -> None:
+        ...
+
+    def update(self, id: str, vector: list[NumVar]) -> bool:
+        return self._impl.set(id, vector)
+
     def has(self, id: str) -> bool:
         return self._impl.has(id)
     
-    def update(self, id: str, vector: list[NumVar]) -> bool:
-        return self._impl.set(id, vector)
+    def keys(self) -> list[str]:
+        ...
 
     def get(self, id: str) -> Optional[list[NumVar]]:
         ret = self._impl.get(id)
@@ -105,16 +117,13 @@ class VectorCollection(Generic[NumVar]):
             return ret
         else:
             return None
-
+    
+    def getBlock(self, ids: list[str]) -> list[Optional[list[NumVar]]]:
+        ...
+    
     def search(self, query: list[NumVar], k: int = -1) -> tuple[list[str], list[float]]:
         """Return a tuple of (ids, scores)"""
         return self._impl.search(query, k)
-
-    def all(self) -> tuple[list[str], list[list[NumVar]]]:
-        ...
-    
-    def deleteBulk(self, ids: list[str]) -> None:
-        self._impl.deleteBulk(ids)
     
     def loadFromDisk(self) -> None:
         if not self.database:
