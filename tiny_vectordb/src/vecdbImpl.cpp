@@ -218,8 +218,7 @@ py::dict VectorCollectionImpl<NumT>::flush(){
             delete_ids.push_back(it->first);
         }
     }
-
-    std::cout << "flush: " << add_ids.size() << " " << update_ids.size() << " " << delete_ids.size() << std::endl;
+    // std::cout << "flush: " << add_ids.size() << " " << update_ids.size() << " " << delete_ids.size() << std::endl;
 
     ret["ADD"] = py::make_tuple(add_ids, add_values);
     ret["UPDATE"] = py::make_tuple(update_ids, update_values);

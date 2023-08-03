@@ -9,4 +9,6 @@ Makefile
 
 .ipynb_checkpoints
 *.ipynb
+
 *.db
+*.db-journal

@@ -1,44 +1,59 @@
 import sqlite3
-from typing import TYPE_CHECKING, Generic, TypeVar
-if TYPE_CHECKING:
-    from .wrap import VectorCollection
+from threading import Lock
 
-NumT = TypeVar('NumT', float, int)
-class SqliteIO(Generic[NumT]):
+def lockRequire(lock):
+    def _func(func):
+        def wrapper(*args, **kwargs):
+            lock.acquire()
+            try:
+                return func(*args, **kwargs)
+            finally:
+                lock.release()
+        return wrapper
+    return _func
+
+class SqliteIO:
+    _lock = Lock()
 
     def __init__(self, fpath: str) -> None:
         self.conn = sqlite3.connect(fpath)
         self.cur = self.conn.cursor()
     
-    def touchTable(self, name: str, dimension: int) -> None:
-        # create if not exists, blob type vector
-        ...
+    @lockRequire(_lock)
+    def touchTable(self, name: str) -> None:
+        # create if not exists, save string
+        self.cur.execute(f"CREATE TABLE IF NOT EXISTS {name} (id TEXT PRIMARY KEY, vector TEXT)")
 
     def getTableNames(self) -> list[str]:
         # get all table names
         ret = self.cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
         return [i[0] for i in ret]
     
-    def getTableData(self, name: str) -> tuple[list[str], list[NumT]]:
-        ...
+    def getTableData(self, name: str) -> tuple[list[str], list[str]]:
+        # get all data in table
+        res = self.cur.execute(f"SELECT * FROM {name}")
+        ret = [[], []]
+        for i in res:
+            ret[0].append(i[0])
+            ret[1].append(i[1])
+        return ret
 
-    def insetToTable(self, name: str, id: str, vector: list[NumT]) -> None:
-        ...
+    @lockRequire(_lock)
+    def insetToTable(self, name: str, id: str, enc_vector: list[str]) -> None:
+        # insert one row to table, make sure id not exists
+        self.cur.execute(f"INSERT INTO {name} VALUES (?, ?)", (id, enc_vector))
     
-    def updateTable(self, name: str, id: str, vector: list[NumT]) -> None:
-        ...
+    @lockRequire(_lock)
+    def updateTable(self, name: str, id: str, enc_vector: list[str]) -> None:
+        # update one row to table, make sure id exists
+        self.cur.execute(f"UPDATE {name} SET vector = ? WHERE id = ?", (enc_vector, id))
     
+    @lockRequire(_lock)
     def deleteFromTable(self, name: str, id: str) -> None:
         # delete one row from table, make sure id exists
+        import pdb; pdb.set_trace()
         self.cur.execute(f"DELETE FROM {name} WHERE id = ?", (id,))
     
+    @lockRequire(_lock)
     def commit(self):
         self.conn.commit()
-
-def list2bin(ls: list[float]) -> bytes:
-    ...
-
-def bin2list(b: bytes) -> list:
-    ...
-    
-    
