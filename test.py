@@ -1,11 +1,13 @@
 import time
 import numpy as np
-from tiny_vectordb import VectorCollection
+from tiny_vectordb import VectorDatabase
 
 LEN = 16
 N = 16
 
-collection = VectorCollection[float]("test", LEN, quite_loading=False)
+VectorDatabase.VERBOSE = True
+database = VectorDatabase("test.db", [{ "name": "test", "dimension": LEN, }])
+collection = database.getCollection("test")
 if not collection.has("-1"):
     collection.insert("-1", [float(x) for x in range(LEN)])
 
