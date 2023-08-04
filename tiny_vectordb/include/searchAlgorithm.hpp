@@ -3,7 +3,7 @@
 
 namespace SearchAlgorithm {
 
-std::vector<int> topKIndexes(const Eigen::Vector<float, Eigen::Dynamic> scores, int k);
+std::vector<int> topKIndices(const Eigen::Vector<float, Eigen::Dynamic> scores, int k);
 
 /* target: (N, feat_dim), query: (feat_dim, ) */
 template <typename NumT>

@@ -5,7 +5,8 @@ import torch
 from tiny_vectordb import VectorCollection
 
 LEN = 512
-torch_device = "cpu"
+torch_device = "cuda" if torch.cuda.is_available() else "cpu"
+# torch_device = "mps" 
 
 def cos_sim_np(tgt, query):
     """
@@ -45,9 +46,9 @@ def search_torch(ids: list[str], tgt, query, k):
     # return [ids[i] for i in topk_indices], scores[topk_indices]
     return ids[topk_indices.cpu().numpy()], scores[topk_indices]
 
-def compare(n: int, k = 10):
+def compare(n: int, k = 16):
     collection = VectorCollection[float](None, "test", LEN, quite_loading=True)
-    print("Compare for", n, "vectors of length", LEN, "numpy | torch", ":")
+    print(f"Compare for {n} vectors of length {LEN} numpy | torch-{torch_device}:")
 
     np.random.seed(0)
     vectors = np.random.rand(n, LEN).tolist()
@@ -62,7 +63,7 @@ def compare(n: int, k = 10):
     t_0 = time.time() - _t
     print("[Eigen] Matrix multiplication time taken:", t_0, "seconds")
     _t = time.time()
-    collection.search(query, k)
+    s0 = collection.search(query, k)
     t_01 = time.time() - _t
     print("[Eigen] Search time taken:", t_01, "seconds")
 
@@ -73,7 +74,7 @@ def compare(n: int, k = 10):
     t_1 = time.time() - _t
     print("[Numpy] Matrix multiplication time taken:", t_1, "seconds")
     _t = time.time()
-    search_np(np.array(ids), target_np, query_np, k)
+    s1 = search_np(np.array(ids), target_np, query_np, k)
     t_11 = time.time() - _t
     print("[Numpy] Search time taken:", t_11, "seconds")
 
@@ -84,13 +85,20 @@ def compare(n: int, k = 10):
     t_2 = time.time() - _t
     print("[PyTorch] Matrix multiplication time taken:", t_2, "seconds")
     _t = time.time()
-    search_torch(np.array(ids), target_torch, query_torch, k)
+    s2 = search_torch(np.array(ids), target_torch, query_torch, k)
     t_21 = time.time() - _t
     print("[PyTorch] Search time taken:", t_21, "seconds")
 
     step = 1 if n < 1000 else n//100
     for i in range(0, n, step):
         assert_approx_equal(sc_0[i], sc_1[i], significant=4)
+    
+    for i in range(k):
+        assert s0[0][i] == s1[0][i]
+        assert_approx_equal(s0[1][i], s1[1][i], significant=4)
+        assert s0[0][i] == s2[0][i]
+        assert_approx_equal(s0[1][i], s2[1][i], significant=4)
+
     print("----------------------------------")
     print(f"Matrix mult. superiority: {t_1 / t_0 : .2f} | {t_2 / t_0} times faster", end="\n")
     print(f"Search superiority: {t_11 / t_01 : .2f} | {t_21 / t_01} times faster", end="\n\n")

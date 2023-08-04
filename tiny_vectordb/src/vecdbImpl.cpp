@@ -260,7 +260,7 @@ py::tuple VectorCollectionImpl<NumT>::search(const std::vector<NumT>& query, int
         topk = size();
     }
     Eigen::Vector<float, Eigen::Dynamic> search_scores = SearchAlgorithm::cosineSimilarity(*vector_chunk, query);
-    std::vector<int> topk_indexes = SearchAlgorithm::topKIndexes(search_scores, topk);
+    std::vector<int> topk_indexes = SearchAlgorithm::topKIndices(search_scores, topk);
 
     StringVector topk_ids = StringVector(topk);
     std::vector<float> topk_scores = std::vector<float>(topk);

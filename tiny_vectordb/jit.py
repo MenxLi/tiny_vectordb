@@ -103,7 +103,7 @@ def compile(feat_dim, quite = False) -> str:
 
     subprocess.check_call("ninja", cwd = script_dir, stdout=SP_STDOUT)
 
-    with open(os.path.join(bin_dir, "compile_commands.json"), "w") as f:
+    with open(os.path.join(script_dir, "compile_commands.json"), "w") as f:
         # ninja -t compdb > compile_commands.json
         subprocess.check_call(["ninja", "-t", "compdb"], cwd = script_dir, stdout=f, stderr=SP_STDOUT)
 
