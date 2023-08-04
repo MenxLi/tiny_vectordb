@@ -2,11 +2,10 @@ __pycache__
 .cache
 .DS_Store
 *.egg-info
-build
+_build
 dist
+build
 .vscode
-
-tiny_vectordb/build/*
 
 compile_commands.json
 Makefile

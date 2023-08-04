@@ -9,7 +9,7 @@ __this_dir = os.path.dirname(os.path.abspath(__file__))
 __this_dir = os.path.abspath(os.path.realpath(__this_dir))
 SRC_DIR = os.path.join(__this_dir, "src")
 HEADER_DIR = os.path.join(__this_dir, "include")
-BUILD_DIR = os.path.join(__this_dir, "build")
+BUILD_DIR = os.path.join(__this_dir, "_build")
 BIN_DIR = os.path.join(BUILD_DIR, "bin")
 
 eigen_src_path = os.path.join(__this_dir, "External", "eigen")
