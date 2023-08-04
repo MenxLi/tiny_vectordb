@@ -32,7 +32,7 @@ class SqliteIO:
     def getTableData(self, name: str) -> tuple[list[str], list[str]]:
         # get all data in table
         res = self.cur.execute(f"SELECT * FROM {name}")
-        ret = [[], []]
+        ret = ([], [])
         for i in res:
             ret[0].append(i[0])
             ret[1].append(i[1])

@@ -4,6 +4,7 @@ __pycache__
 *.egg-info
 build
 dist
+.vscode
 
 tiny_vectordb/build/*
 

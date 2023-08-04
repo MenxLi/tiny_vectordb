@@ -26,7 +26,7 @@ class VectorDatabase(dict[str, "VectorCollection[float]"]):
     def disk_io(self):
         return self.__disk_io
     
-    def _initCollections(self) -> bool:
+    def _initCollections(self):
         """Load collection from disk if exists"""
         table_names = self.disk_io.getTableNames()
         for name in self.keys():
@@ -52,6 +52,10 @@ class VectorDatabase(dict[str, "VectorCollection[float]"]):
         Save all changes to disk
         """
         self.disk_io.commit()
+
+class _VectorCollectionEncoding(Generic[NumVar]):
+    def encode(self, vector: list[NumVar]) -> str: ...
+    def decode(self, enc_vector: str) -> list[NumVar]: ...
 
 class VectorCollection(Generic[NumVar]):
 
@@ -82,6 +86,9 @@ class VectorCollection(Generic[NumVar]):
     @property
     def _impl(self):
         return self.__impl
+    @property
+    def encoding(self) -> _VectorCollectionEncoding[NumVar]:
+        return self.__clib.enc
     
     def addBlock(self, ids: list[str], vectors: list[list[NumVar]]):
         """
@@ -124,11 +131,7 @@ class VectorCollection(Generic[NumVar]):
         """
         Get a vector by id, return an empty list if not exists
         """
-        ret = self._impl.get(id)
-        if ret:
-            return ret
-        else:
-            return None
+        return self._impl.get(id)
     
     def getBlock(self, ids: list[str]) -> list[list[NumVar]]:
         """
@@ -155,19 +158,21 @@ class VectorCollection(Generic[NumVar]):
 
     def flush(self) -> bool:
         """
-        Load all changes to sqlite database memory, but not save to disk
+        Load all changes to sqlite database memory, but not save to disk,
+        If the collection is not attached to a database, return False
         """
-        chages = self._impl.flush()
+        changes = self._impl.flush()
         if not self.database:
-            return 
-        ids_add, enc_vectors_add = chages["ADD"]
+            return False
+        ids_add, enc_vectors_add = changes["ADD"]
         for identifier, enc_vector in zip(ids_add, enc_vectors_add):
             self.database.disk_io.insetToTable(self.name, identifier, enc_vector)
-        for identifier in chages["DELETE"][0]:
-            self.database.disk_io.deleteFromTable(self.name, identifier)
-        ids_update, enc_vectors_update = chages["UPDATE"]
+        ids_update, enc_vectors_update = changes["UPDATE"]
         for identifier, enc_vector in zip(ids_update, enc_vectors_update):
             self.database.disk_io.updateTable(self.name, identifier, enc_vector)
+        for identifier in changes["DELETE"][0]:
+            self.database.disk_io.deleteFromTable(self.name, identifier)
+        return True
 
     def __len__(self) -> int:
         return self._impl.size()
