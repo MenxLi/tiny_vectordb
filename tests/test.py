@@ -22,7 +22,7 @@ target = vectors
 assert collection.has("-1")
 assert collection.get("-1") == [float(x) for x in range(LEN)]
 
-assert collection.get("100") == None
+assert not collection.get("100")
 
 collection.deleteBlock(["-1", "0"])
 assert not collection.has("-1")
