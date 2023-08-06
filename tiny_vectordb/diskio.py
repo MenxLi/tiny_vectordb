@@ -23,6 +23,11 @@ class SqliteIO:
     def touchTable(self, name: str) -> None:
         # create if not exists, save string
         self.cur.execute(f"CREATE TABLE IF NOT EXISTS {name} (id TEXT PRIMARY KEY, vector TEXT)")
+    
+    @lockRequire(_lock)
+    def deleteTable(self, name: str) -> None:
+        # delete table
+        self.cur.execute(f"DROP TABLE {name}")
 
     def getTableNames(self) -> list[str]:
         # get all table names

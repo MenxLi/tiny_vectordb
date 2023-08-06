@@ -28,3 +28,11 @@ collection.deleteBlock(["-1", "0"])
 assert not collection.has("-1")
 assert not collection.has("0")
 assert collection.has("1")
+
+database.createCollection({"name": "hello", "dimension": 128})
+assert set(database.keys()) == set(["test", "hello"])
+assert set(database.disk_io.getTableNames()) == set(["test", "hello"])
+
+database.deleteCollection("test")
+assert list(database.keys()) == ["hello"]
+assert database.disk_io.getTableNames() == ["hello"]
