@@ -16,7 +16,7 @@ eigen_src_path = os.path.join(__this_dir, "External", "eigen")
 
 for _d in [BUILD_DIR, BIN_DIR]:
     if not os.path.exists(_d):
-        os.mkdir(_d)
+        os.makedirs(_d, exist_ok=True)
 
 def _writeNinja(feat_dim: int):
     module_name = _get_module_name(feat_dim)
@@ -26,7 +26,7 @@ def _writeNinja(feat_dim: int):
     ninja_build_file = os.path.join(script_dir, "build.ninja")
     for _d in [bin_dir, lib_dir, script_dir]:
         if not os.path.exists(_d):
-            os.mkdir(_d)
+            os.makedirs(_d, exist_ok=True)
 
     ext_suffix = sysconfig.get_config_var("EXT_SUFFIX")
     py_includes = sysconfig.get_config_var('INCLUDEPY')
