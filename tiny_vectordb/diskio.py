@@ -56,7 +56,6 @@ class SqliteIO:
     @lockRequire(_lock)
     def deleteFromTable(self, name: str, id: str) -> None:
         # delete one row from table, make sure id exists
-        import pdb; pdb.set_trace()
         self.cur.execute(f"DELETE FROM {name} WHERE id = ?", (id,))
     
     @lockRequire(_lock)
