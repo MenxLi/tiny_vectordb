@@ -17,6 +17,7 @@ class VectorDatabase(dict[str, "VectorCollection[float]"]):
     VERBOSE = False
     def __init__(self, path: str, collection_configs: list[CollectionConfig]):
         super().__init__()
+        self.__database_path = path
         self.__disk_io = SqliteIO(path)
         for config in collection_configs:
             self[config['name']] = VectorCollection[float](self, quite_loading=not self.VERBOSE, **config)
@@ -35,6 +36,10 @@ class VectorDatabase(dict[str, "VectorCollection[float]"]):
     @property
     def disk_io(self):
         return self.__disk_io
+    
+    @property
+    def database_path(self):
+        return self.__database_path
     
     def getCollection(self, name: str) -> VectorCollection:
         return self[name]
