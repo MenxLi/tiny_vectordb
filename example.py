@@ -25,7 +25,7 @@ if os.path.exists("test.db"):
 # create database will initialize all collections, 
 # for each dimension, a shared library will be compiled and loaded.
 print("Compiling...")
-database = VectorDatabase("test.db", collection_configs)
+database = VectorDatabase("test.db", collection_configs)  # type: ignore
 collection = database["hello"]
 
 # 100 vectors of 256 dimension

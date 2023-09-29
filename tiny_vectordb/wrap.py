@@ -14,7 +14,7 @@ class CollectionConfig(TypedDict):
     dimension: int
 
 class VectorDatabase(dict[str, "VectorCollection[float]"]):
-    VERBOSE = False
+    VERBOSE: bool = False
     def __init__(self, path: str, collection_configs: list[CollectionConfig]):
         super().__init__()
         self.__database_path = path

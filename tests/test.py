@@ -1,4 +1,4 @@
-import time
+import os
 import numpy as np
 from tiny_vectordb import VectorDatabase
 
@@ -6,6 +6,8 @@ LEN = 16
 N = 16
 
 VectorDatabase.VERBOSE = True
+if os.path.exists("test.db"):
+    raise FileExistsError("test.db already exists")
 database = VectorDatabase("test.db", [{ "name": "test", "dimension": LEN, }])
 collection = database.getCollection("test")
 if not collection.has("-1"):
@@ -36,3 +38,4 @@ assert set(database.disk_io.getTableNames()) == set(["test", "hello"])
 database.deleteCollection("test")
 assert list(database.keys()) == ["hello"]
 assert database.disk_io.getTableNames() == ["hello"]
+os.remove("test.db")
