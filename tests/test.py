@@ -38,4 +38,5 @@ assert set(database.disk_io.getTableNames()) == set(["test", "hello"])
 database.deleteCollection("test")
 assert list(database.keys()) == ["hello"]
 assert database.disk_io.getTableNames() == ["hello"]
+database.disk_io.conn.close()
 os.remove("test.db")

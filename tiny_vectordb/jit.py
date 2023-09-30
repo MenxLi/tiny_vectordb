@@ -18,7 +18,12 @@ for _d in [BUILD_DIR, BIN_DIR]:
     if not os.path.exists(_d):
         os.makedirs(_d, exist_ok=True)
 
-def _writeNinja(feat_dim: int, cxx = "g++"):
+def _writeNinja(
+        feat_dim: int, 
+        cxx = "g++", 
+        additional_compile_flags = [],
+        additional_link_flags = []
+        ):
     module_name = _get_module_name(feat_dim)
     bin_dir = os.path.join(BIN_DIR, module_name)
     script_dir = os.path.join(BUILD_DIR, "scripts_"+ module_name)
@@ -43,7 +48,6 @@ def _writeNinja(feat_dim: int, cxx = "g++"):
             cxx_flags = [
                 "-std=c++17",
                 "-Wall",
-                "-fPIC",
                 f"-I{eigen_src_path}",
                 f"-I{py_includes}",
                 f"-I{pybind11.get_include()}",
@@ -55,15 +59,17 @@ def _writeNinja(feat_dim: int, cxx = "g++"):
                 "-DNDEBUG",
                 "-O2",
                 "-funroll-loops",
-                "-march=native",
-                "-mtune=native",
-                # "-mavx512f",
-            ]
+            ] + additional_compile_flags
+
+            if platform.system() == "Windows":
+                cxx_flags += [ "-DYNAMICBASE" ]
+            else:
+                cxx_flags += [ "-fPIC" ]
 
             link_flags = [
                 "-shared",
                 "-lstdc++",
-            ]
+            ] + additional_link_flags
             if platform.system() == "Darwin":
                 link_flags.append("-undefined dynamic_lookup")
 
@@ -94,8 +100,19 @@ def _writeNinja(feat_dim: int, cxx = "g++"):
 def _get_module_name(feat_dim):
     return f"vecdbImpl{feat_dim}"
 
-def compile(feat_dim, quite = False) -> str:
-    module_name, script_dir, bin_dir = _writeNinja(feat_dim)
+def compile(
+        feat_dim, 
+        quite = False, 
+        cxx: str = "g++",
+        additional_compile_flags = [],
+        additional_link_flags = []
+        ) -> str:
+    module_name, script_dir, bin_dir = _writeNinja(
+        feat_dim, 
+        cxx=cxx, 
+        additional_compile_flags=additional_compile_flags, 
+        additional_link_flags=additional_link_flags
+        )
 
     def print_(*args, **kwargs):
         if not quite:

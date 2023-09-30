@@ -6,6 +6,7 @@ _build
 dist
 build
 .vscode
+.venv
 
 compile_commands.json
 Makefile

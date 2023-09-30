@@ -3,7 +3,16 @@ from tiny_vectordb import VectorDatabase
 import os
 random.seed(0)
 
+## This will print all compilation and linking commands
 # VectorDatabase.VERBOSE = True
+
+## You may need to change these paths to your own python installation, if error occurs, 
+## or you may add some additional compile flags for your own environment and optimization
+## or you can just remove these lines and use default settings
+# from tiny_vectordb import VectorCollection
+# VectorCollection.COMPILE_CONFIG["cxx"] = "clang++"
+# VectorCollection.COMPILE_CONFIG["additional_compile_flags"] = ["-IC:\\Users\\vuser\\AppData\\Local\\Programs\\Python\\Python311\\include"]
+# VectorCollection.COMPILE_CONFIG["additional_link_flags"] = ["-LC:\\Users\\vuser\\AppData\\Local\\Programs\\Python\\Python311\\libs"]
 
 collection_configs = [
     {

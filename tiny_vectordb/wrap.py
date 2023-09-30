@@ -13,6 +13,11 @@ class CollectionConfig(TypedDict):
     name: str
     dimension: int
 
+class CompileConfig(TypedDict):
+    cxx: str
+    additional_compile_flags: list[str]
+    additional_link_flags: list[str]
+
 class VectorDatabase(dict[str, "VectorCollection[float]"]):
     VERBOSE: bool = False
     def __init__(self, path: str, collection_configs: list[CollectionConfig]):
@@ -78,6 +83,14 @@ class _VectorCollectionEncoding(Generic[NumVar]):
     def decode(self, enc_vector: str) -> list[NumVar]: ...
 
 class VectorCollection(Generic[NumVar]):
+    COMPILE_CONFIG: CompileConfig = {
+        "cxx": "g++",
+        "additional_compile_flags": [
+            "-march=native",
+            "-mtune=native",
+        ],
+        "additional_link_flags": []
+    }
 
     def __init__(self, parent: Optional[VectorDatabase], name: str, dimension: int, quite_loading = True):
         """
@@ -87,7 +100,7 @@ class VectorCollection(Generic[NumVar]):
             if not quite_loading:
                 print("Adding", BIN_DIR, "to sys.path")
             sys.path.append(BIN_DIR)
-        _m_name = compile(dimension, quite = quite_loading)
+        _m_name = compile(dimension, quite = quite_loading, **self.COMPILE_CONFIG)
 
         self.__name = name
         self.__database = parent
