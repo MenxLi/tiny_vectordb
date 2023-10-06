@@ -85,10 +85,7 @@ class _VectorCollectionEncoding(Generic[NumVar]):
 class VectorCollection(Generic[NumVar]):
     COMPILE_CONFIG: CompileConfig = {
         "cxx": "g++",
-        "additional_compile_flags": [
-            "-march=native",
-            "-mtune=native",
-        ],
+        "additional_compile_flags": [],     # "-march=native", "-mtune=native",
         "additional_link_flags": []
     }
 
