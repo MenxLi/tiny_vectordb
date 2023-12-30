@@ -8,6 +8,8 @@ build
 .vscode
 .venv
 
+tiny_vectordb/External/*
+
 compile_commands.json
 Makefile
 
