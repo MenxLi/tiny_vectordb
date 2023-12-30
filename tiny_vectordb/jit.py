@@ -4,6 +4,11 @@ from ninja import ninja_syntax
 import pybind11
 import os, sysconfig, subprocess, platform, sys
 
+def checkCommandExists(cmd: str) -> bool:
+    if platform.system() == "Windows":
+        return subprocess.call(["where", cmd], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
+    return subprocess.call(["which", cmd], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
+
 __this_dir = os.path.dirname(os.path.abspath(__file__))
 __this_dir = os.path.abspath(os.path.realpath(__this_dir))
 SRC_DIR = os.path.join(__this_dir, "src")
@@ -17,6 +22,8 @@ if not os.path.exists(eigen_src_path):
     os.makedirs(eigen_src_path)
 if os.listdir(eigen_src_path) == []:
     print("Downloading Eigen...")
+    if not checkCommandExists("git"):
+        raise RuntimeError("git not found.")
     subprocess.check_call([
         "git", "clone", "--depth=1", f"--branch={eigen_version}",
         "https://gitlab.com/libeigen/eigen.git", eigen_src_path]
@@ -32,6 +39,9 @@ def _writeNinja(
         additional_compile_flags = [],
         additional_link_flags = []
         ):
+    if not checkCommandExists(cxx):
+        raise RuntimeError(f"{cxx} not found.")
+
     module_name = _get_module_name(feat_dim)
     bin_dir = os.path.join(BIN_DIR, module_name)
     script_dir = os.path.join(BUILD_DIR, "scripts_"+ module_name)
