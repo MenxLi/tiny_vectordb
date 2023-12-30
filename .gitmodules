@@ -1,3 +1,0 @@
-[submodule "tiny_vectordb/External/eigen"]
-	path = tiny_vectordb/External/eigen
-	url = https://gitlab.com/libeigen/eigen
