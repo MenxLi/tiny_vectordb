@@ -7,6 +7,6 @@ from . import jit
 
 __all__ = [
     "VectorDatabase",
-    "VectorCollection"
+    "VectorCollection",
     "jit"
 ]
