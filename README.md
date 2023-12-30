@@ -13,15 +13,14 @@ More than 10x Faster than numpy-based vector operations.
 
 ### Development Status
 
-The project is currently under development. 
-It is compatible with Linux and Mac OS using g++ or clang++. 
-For Windows, you will need to write your own compile script. Please refer to the `tiny_vectordb.jit` file for more information.
+It is currently compatible with g++ or clang++.   
+You may need to modify `compile_config` parameter in `VectorDatabase` initialization to inject your compile commands.   
+To make it work with other compiler, you may need to change `tiny_vectordb.jit` module.
 
 ### Installation
 
 ```bash
-git submodule update --init --recursive
-pip install -e .
+pip install tiny_vectordb
 ```
 Good to go!
 
@@ -41,6 +40,15 @@ collection_configs = [
 ]
 database = VectorDatabase("test.db", collection_configs)
 collection = database["hello"]
+
+# add vectors
+collection.setBlock(
+    ["id1", "id2"],             # ids
+    [[1] * 256, [2] * 256]      # vectors
+)
+
+# search for nearest vectors
+collection.search([1.9] * 256)  # returns ["id2", "id1"]
 ```
 For more usage, see `example.py`.
 

@@ -3,18 +3,23 @@ from tiny_vectordb import VectorDatabase
 import os
 random.seed(0)
 
+# typing
+from tiny_vectordb import CollectionConfig, CompileConfig
+
 ## This will print all compilation and linking commands
 # VectorDatabase.VERBOSE = True
 
 ## You may need to change these paths to your own python installation, if error occurs, 
 ## or you may add some additional compile flags for your own environment and optimization
-## or you can just remove these lines and use default settings
-# from tiny_vectordb import VectorCollection
-# VectorCollection.COMPILE_CONFIG["cxx"] = "clang++"
-# VectorCollection.COMPILE_CONFIG["additional_compile_flags"] = ["-IC:\\Users\\vuser\\AppData\\Local\\Programs\\Python\\Python311\\include"]
-# VectorCollection.COMPILE_CONFIG["additional_link_flags"] = ["-LC:\\Users\\vuser\\AppData\\Local\\Programs\\Python\\Python311\\libs"]
+## or you can just set compile_config to None, or not pass it to VectorDatabase
+# compile_config = {
+#     "cxx": "clang++",
+#     "additional_compile_flags": ["-IC:\\Users\\vuser\\AppData\\Local\\Programs\\Python\\Python311\\include"],
+#     "additional_link_flags": ["-LC:\\Users\\vuser\\AppData\\Local\\Programs\\Python\\Python311\\libs"]
+# }
+compile_config: CompileConfig = None    # type: ignore
 
-collection_configs = [
+collection_configs: list[CollectionConfig] = [
     {
         "name": "hello",
         "dimension": 256,
@@ -34,7 +39,7 @@ if os.path.exists("test.db"):
 # create database will initialize all collections, 
 # for each dimension, a shared library will be compiled and loaded.
 print("Compiling...")
-database = VectorDatabase("test.db", collection_configs)  # type: ignore
+database = VectorDatabase("test.db", collection_configs, compile_config=compile_config)
 collection = database["hello"]
 
 # 100 vectors of 256 dimension
