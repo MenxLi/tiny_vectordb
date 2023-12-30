@@ -20,12 +20,17 @@ class CompileConfig(TypedDict):
 
 class VectorDatabase(dict[str, "VectorCollection[float]"]):
     VERBOSE: bool = False
-    def __init__(self, path: str, collection_configs: list[CollectionConfig]):
+    def __init__(self, path: str, collection_configs: list[CollectionConfig], compile_config: Optional[CompileConfig] = None):
         super().__init__()
         self.__database_path = path
         self.__disk_io = SqliteIO(path)
         for config in collection_configs:
-            self[config['name']] = VectorCollection[float](self, quite_loading=not self.VERBOSE, **config)
+            self[config['name']] = VectorCollection[float](
+                self, 
+                quite_loading=not self.VERBOSE, 
+                compile_config=compile_config, 
+                **config
+                )
         self.__initCollections()
     
     def __initCollections(self):
