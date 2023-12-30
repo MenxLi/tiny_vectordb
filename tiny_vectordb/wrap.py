@@ -89,7 +89,13 @@ class VectorCollection(Generic[NumVar]):
         "additional_link_flags": []
     }
 
-    def __init__(self, parent: Optional[VectorDatabase], name: str, dimension: int, quite_loading = True):
+    def __init__(
+            self, parent: Optional[VectorDatabase], 
+            name: str, 
+            dimension: int, 
+            quite_loading = True, 
+            compile_config: Optional[CompileConfig] = None
+            ):
         """
         set parent to None if you don't want to save changes to disk
         """
@@ -97,8 +103,10 @@ class VectorCollection(Generic[NumVar]):
             if not quite_loading:
                 print("Adding", BIN_DIR, "to sys.path")
             sys.path.append(BIN_DIR)
-        _m_name = compile(dimension, quite = quite_loading, **self.COMPILE_CONFIG)
+        if compile_config is None:
+            compile_config = self.__class__.COMPILE_CONFIG
 
+        _m_name = compile(dimension, quite = quite_loading, **compile_config)
         self.__name = name
         self.__database = parent
         self.__clib = import_module(_m_name)
