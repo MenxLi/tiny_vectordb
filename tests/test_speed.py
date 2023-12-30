@@ -74,7 +74,7 @@ def compare(n: int, k = 16):
     t_1 = time.time() - _t
     print("[Numpy] Matrix multiplication time taken:", t_1, "seconds")
     _t = time.time()
-    s1 = search_np(np.array(ids), target_np, query_np, k)
+    s1 = search_np(np.array(ids), target_np, query_np, k)   # type: ignore
     t_11 = time.time() - _t
     print("[Numpy] Search time taken:", t_11, "seconds")
 
@@ -85,7 +85,7 @@ def compare(n: int, k = 16):
     t_2 = time.time() - _t
     print("[PyTorch] Matrix multiplication time taken:", t_2, "seconds")
     _t = time.time()
-    s2 = search_torch(np.array(ids), target_torch, query_torch, k)
+    s2 = search_torch(np.array(ids), target_torch, query_torch, k)      # type: ignore
     t_21 = time.time() - _t
     print("[PyTorch] Search time taken:", t_21, "seconds")
 
