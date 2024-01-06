@@ -1,4 +1,3 @@
-from __future__ import annotations
 from setuptools import setup, find_packages
 
 with open("README.md", "r") as f:

@@ -18,16 +18,23 @@ BIN_DIR = os.path.join(BUILD_DIR, "bin")
 
 eigen_version = "3.4.0"
 eigen_src_path = os.path.join(__this_dir, "External", f"eigen{eigen_version}")
-if not os.path.exists(eigen_src_path):
-    os.makedirs(eigen_src_path)
-if os.listdir(eigen_src_path) == []:
-    print("Downloading Eigen...")
-    if not checkCommandExists("git"):
-        raise RuntimeError("git not found.")
-    subprocess.check_call([
-        "git", "clone", "--depth=1", f"--branch={eigen_version}",
-        "https://gitlab.com/libeigen/eigen.git", eigen_src_path]
-        )
+
+def initEigenSrc():
+    if not os.path.exists(eigen_src_path):
+        os.makedirs(eigen_src_path)
+
+    if os.listdir(eigen_src_path) == [] or \
+        not os.path.exists(os.path.join(eigen_src_path, "Eigen", "src", "Core")):
+
+        print("Downloading Eigen...")
+        if not checkCommandExists("git"):
+            raise RuntimeError("git not found.")
+        subprocess.check_call([
+            "git", "clone", "--depth=1", f"--branch={eigen_version}",
+            "https://gitlab.com/libeigen/eigen.git", eigen_src_path]
+            )
+
+initEigenSrc()
 
 for _d in [BUILD_DIR, BIN_DIR]:
     if not os.path.exists(_d):
