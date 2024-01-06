@@ -25,9 +25,13 @@ pip install tiny_vectordb
 Good to go!
 
 ### Uninstallation
-The package will emit some compiled files in the source directory, which may not be automatically removed using `pip uninstall`, so you may run this command before uninstalling:
+The package will emit some compiled files in the source directory, which may not be automatically removed using `pip uninstall`, so you need to run the following command manually if you want to uninstall the package comletely.
 ```bash
 python -c "import tiny_vectordb; tiny_vectordb.cleanup()"
+```
+After that, you can safely uninstall the package with: 
+```bash
+pip uninstall tiny_vectordb
 ```
 
 ### Usage:

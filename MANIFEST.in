@@ -1,3 +1,4 @@
-recursive-include tiny_vectordb/_cache *
 recursive-include tiny_vectordb/include *
 recursive-include tiny_vectordb/src *
+
+prune tiny_vectordb/_cache
