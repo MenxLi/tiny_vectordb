@@ -58,7 +58,7 @@ collection.setBlock(
 )
 
 # search for nearest vectors
-collection.search([1.9] * 256)  # returns ["id2", "id1"]
+collection.search([1.9] * 256)  # returns [["id2", "id1"], ["<score_2>", "<score_1>"]
 ```
 For more usage, see `example.py`.
 
