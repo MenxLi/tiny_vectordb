@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Union, TypeVar, Generic, Optional, TypedDict, Optional
-from .jit import BIN_DIR, compile
+from .jit import compile
+from .config import BIN_DIR
 import sys
 from importlib import import_module
 from .diskio import SqliteIO
