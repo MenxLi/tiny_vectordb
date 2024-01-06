@@ -17,7 +17,7 @@ def cleanup():
     if os.path.exists(CACHE_DIR):
         shutil.rmtree(CACHE_DIR)
 
-BUILD_DIR = os.path.join(CACHE_DIR, "build")
+BUILD_DIR = os.path.join(CACHE_DIR, f"build{VERSION}")
 BIN_DIR = os.path.join(BUILD_DIR, "bin")
 for _d in [BUILD_DIR, BIN_DIR]:
     if not os.path.exists(_d):
