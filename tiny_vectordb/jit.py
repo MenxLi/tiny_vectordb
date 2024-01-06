@@ -2,7 +2,7 @@
 # https://ninja-build.org/manual.html
 from ninja import ninja_syntax
 import pybind11
-import os, sysconfig, subprocess, platform, sys
+import os, sysconfig, subprocess, platform, sys, shutil
 
 def checkCommandExists(cmd: str) -> bool:
     if platform.system() == "Windows":
@@ -13,13 +13,24 @@ __this_dir = os.path.dirname(os.path.abspath(__file__))
 __this_dir = os.path.abspath(os.path.realpath(__this_dir))
 SRC_DIR = os.path.join(__this_dir, "src")
 HEADER_DIR = os.path.join(__this_dir, "include")
-BUILD_DIR = os.path.join(__this_dir, "_build")
-BIN_DIR = os.path.join(BUILD_DIR, "bin")
+CACHE_DIR = os.path.join(__this_dir, "_cache")
+if not os.path.exists(CACHE_DIR):
+    os.mkdir(CACHE_DIR)
+
+def cleanup():
+    """
+    Should be called before using `pip uninstall`
+    """
+    global CACHE_DIR
+    if os.path.exists(CACHE_DIR):
+        shutil.rmtree(CACHE_DIR)
+
 
 eigen_version = "3.4.0"
-eigen_src_path = os.path.join(__this_dir, "External", f"eigen{eigen_version}")
+eigen_src_path = os.path.join(CACHE_DIR, f"eigen{eigen_version}")
 
 def initEigenSrc():
+    global eigen_src_path
     if not os.path.exists(eigen_src_path):
         os.makedirs(eigen_src_path)
 
@@ -33,9 +44,10 @@ def initEigenSrc():
             "git", "clone", "--depth=1", f"--branch={eigen_version}",
             "https://gitlab.com/libeigen/eigen.git", eigen_src_path]
             )
-
 initEigenSrc()
 
+BUILD_DIR = os.path.join(CACHE_DIR, "build")
+BIN_DIR = os.path.join(BUILD_DIR, "bin")
 for _d in [BUILD_DIR, BIN_DIR]:
     if not os.path.exists(_d):
         os.makedirs(_d, exist_ok=True)
