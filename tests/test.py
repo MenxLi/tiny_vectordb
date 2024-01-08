@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from tiny_vectordb import VectorDatabase
+from tiny_vectordb import VectorDatabase, autoCompileConfig
 
 LEN = 16
 N = 16
@@ -8,7 +8,14 @@ N = 16
 VectorDatabase.VERBOSE = True
 if os.path.exists("test.db"):
     raise FileExistsError("test.db already exists")
-database = VectorDatabase("test.db", [{ "name": "test", "dimension": LEN, }])
+
+print(autoCompileConfig())
+database = VectorDatabase(
+    "test.db", 
+    [{ "name": "test", "dimension": LEN, }],
+    compile_config=autoCompileConfig()
+    )
+
 collection = database.getCollection("test")
 if not collection.has("-1"):
     collection.addBlock(["-1"], [[float(x) for x in range(LEN)]])
