@@ -4,31 +4,11 @@ from ninja import ninja_syntax
 import pybind11
 import os, sysconfig, subprocess, platform, sys
 from .config import CACHE_DIR, SRC_DIR, HEADER_DIR, BUILD_DIR, BIN_DIR
-
-def checkCommandExists(cmd: str) -> bool:
-    if platform.system() == "Windows":
-        return subprocess.call(["where", cmd], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
-    return subprocess.call(["which", cmd], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0
+from .jit_utils import initEigenSrc, checkCommandExists
 
 eigen_version = "3.4.0"
 eigen_src_path = os.path.join(CACHE_DIR, f"eigen{eigen_version}")
-
-def initEigenSrc():
-    global eigen_src_path
-    if not os.path.exists(eigen_src_path):
-        os.makedirs(eigen_src_path)
-
-    if os.listdir(eigen_src_path) == [] or \
-        not os.path.exists(os.path.join(eigen_src_path, "Eigen", "src", "Core")):
-
-        print("Downloading Eigen...")
-        if not checkCommandExists("git"):
-            raise RuntimeError("git not found.")
-        subprocess.check_call([
-            "git", "clone", "--depth=1", f"--branch={eigen_version}",
-            "https://gitlab.com/libeigen/eigen.git", eigen_src_path]
-            )
-initEigenSrc()
+initEigenSrc(eigen_src_path, eigen_version)
 
 def _writeNinja(
         feat_dim: int, 
