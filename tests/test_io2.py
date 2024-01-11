@@ -24,4 +24,3 @@ collection._impl.update("3", np.zeros(LEN).tolist())
 collection._impl.print()
 
 database.commit()
-database.flush()

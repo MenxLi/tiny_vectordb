@@ -73,16 +73,12 @@ class VectorDatabase(dict[str, "VectorCollection[float]"]):
 
     def commit(self):
         """
-        Commit all changes to sqlite database, but not flush to disk
+        Commit all changes to sqlite database and commit
         """
         for collection in self.values():
-            collection.commit()
-    
-    def flush(self):
-        """
-        Save all changes to disk
-        """
+            collection._flush()
         self.disk_io.commit()
+
 
 class _VectorCollectionEncoding(Generic[NumVar]):
     def encode(self, vector: list[NumVar]) -> str: ...
@@ -200,7 +196,7 @@ class VectorCollection(Generic[NumVar]):
         ids, enc_vectors = self.database.disk_io.getTableData(self.name)
         self._impl.addRawEncBulk(ids, enc_vectors)
 
-    def commit(self) -> bool:
+    def _flush(self) -> bool:
         """
         Load all changes to sqlite database memory, but not save to disk,
         If the collection is not attached to a database, return False

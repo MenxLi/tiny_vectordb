@@ -64,6 +64,5 @@ print("Current keys:", collection.keys())
 search_ids, search_scores = collection.search([random.random() for _ in range(256)], k=10)
 print("Top 10 search results:", search_ids, search_scores)
 
-print("Commiting and flushing...")
+print("Commiting ...")
 database.commit()
-database.flush()
