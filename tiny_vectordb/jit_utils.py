@@ -1,6 +1,7 @@
 from __future__ import annotations
-import os, subprocess, platform
+import os, subprocess, platform, time, random
 from typing import TYPE_CHECKING
+from .config import CACHE_DIR
 if TYPE_CHECKING:
     from .wrap import CompileConfig
 
@@ -14,16 +15,27 @@ def initEigenSrc(eigen_src_path: str, eigen_version: str = "3.4.0"):
     if not os.path.exists(eigen_src_path):
         os.makedirs(eigen_src_path)
 
+    __downloading_lock_file = os.path.join(CACHE_DIR, "downloading.lock")
+    while os.path.exists(__downloading_lock_file):
+        print(f"Find lock file [{__downloading_lock_file}], waiting...")
+        time.sleep(random.random() * 1 + 1)     # wait for 1~2 seconds, avoid resource competition
+
     if os.listdir(eigen_src_path) == [] or \
         not os.path.exists(os.path.join(eigen_src_path, "Eigen", "src", "Core")):
 
         print("Downloading Eigen...")
         if not checkCommandExists("git"):
             raise RuntimeError("git not found.")
-        subprocess.check_call([
-            "git", "clone", "--depth=1", f"--branch={eigen_version}",
-            "https://gitlab.com/libeigen/eigen.git", eigen_src_path]
-            )
+        
+        open(__downloading_lock_file, "w").close()
+        try:
+            subprocess.check_call([
+                "git", "clone", "--depth=1", f"--branch={eigen_version}",
+                "https://gitlab.com/libeigen/eigen.git", eigen_src_path]
+                )
+        except: pass
+        finally:
+            os.remove(__downloading_lock_file)
 
 def autoCompileConfig() -> CompileConfig:
     """
