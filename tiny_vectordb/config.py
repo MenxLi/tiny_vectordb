@@ -5,7 +5,7 @@ __this_dir = os.path.dirname(os.path.abspath(__file__))
 __this_dir = os.path.abspath(os.path.realpath(__this_dir))
 SRC_DIR = os.path.join(__this_dir, "src")
 HEADER_DIR = os.path.join(__this_dir, "include")
-CACHE_DIR = os.path.join(__this_dir, "_cache")
+CACHE_DIR = os.getenv("TVDB_CACHE_DIR", os.path.join(__this_dir, "_cache"))
 if not os.path.exists(CACHE_DIR):
     os.mkdir(CACHE_DIR)
 

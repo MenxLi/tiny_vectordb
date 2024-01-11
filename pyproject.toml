@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tiny_vectordb"
-version = "0.1.5"
+version = "0.1.6"
 authors = [
   { name="Li, Mengxun", email="mengxunli@whu.edu.cn" },
 ]
