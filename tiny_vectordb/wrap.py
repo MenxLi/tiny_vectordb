@@ -109,10 +109,13 @@ class VectorCollection(Generic[NumVar]):
             compile_config = self.__class__.COMPILE_CONFIG
 
         _m_name = compile(dimension, quite = quite_loading, **compile_config)
-        self.__name = name
-        self.__database = parent
         self.__clib = import_module(_m_name)
         self.__impl = self.__clib.VectorCollectionImpl()
+        if not quite_loading:
+            print("#### Loaded", _m_name, "from", BIN_DIR)
+
+        self.__name = name
+        self.__database = parent
     
     @property
     def name(self):
@@ -220,3 +223,10 @@ class VectorCollection(Generic[NumVar]):
     def __getitem__(self, id: str) -> Optional[list[NumVar]]:
         return self.get(id)
     
+
+import os
+if os.getenv("TVDB_BACKEND", 'jit').lower() == "numpy":
+    from .numpy_impl import VectorCollection_Numpy
+    # override!
+    print("WARNING: Using numpy backend, this may cause performance issues.")
+    VectorCollection = VectorCollection_Numpy # type: ignore
