@@ -90,7 +90,9 @@ void VectorCollectionImpl<NumT>::addRawBulk(StringVector ids, const std::vector<
     // update matrix
     for (int i = 0; i < ids.size(); i++){
         if (vectors[i].size() != FEAT_DIM){
-            throw std::runtime_error("vector size not match");
+            throw std::runtime_error("vector size not match: " + 
+                std::to_string(vectors[i].size()) + " vs. " + std::to_string(FEAT_DIM)
+                );
         }
         for (int j = 0; j < FEAT_DIM; j++){
             (*vector_chunk)(i + old_size, j) = vectors[i][j];

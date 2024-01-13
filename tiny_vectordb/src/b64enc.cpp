@@ -1,5 +1,4 @@
 #include "b64enc.h"
-#include "common.h"
 #include <vector>
 
 // static inline bool is_base64(BYTE c) {

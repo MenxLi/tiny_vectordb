@@ -1,11 +1,18 @@
 #pragma once
 
 #include "common.h"
-#include "diskIO.h"
 #include "pybind11/pytypes.h"
 #include "b64enc.h"
 #include <string>
 #include <vector>
+
+#ifndef FEAT_DIM
+#define FEAT_DIM 768
+#endif
+
+#ifndef MODULE_NAME
+#define MODULE_NAME vecdbImpl
+#endif
 
 namespace py = pybind11;
 
