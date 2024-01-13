@@ -4,9 +4,8 @@ from numpy.testing import assert_approx_equal
 import torch
 from tiny_vectordb import VectorCollection
 
-LEN = 512
+LEN_512 = 512
 torch_device = "cuda" if torch.cuda.is_available() else "cpu"
-# torch_device = "mps" 
 
 def cos_sim_np(tgt, query):
     """
@@ -47,14 +46,14 @@ def search_torch(ids: list[str], tgt, query, k):
     return ids[topk_indices.cpu().numpy()], scores[topk_indices]
 
 def compare(n: int, k = 16):
-    collection = VectorCollection[float](None, "test", LEN, quite_loading=True)
-    print(f"Compare for {n} vectors of length {LEN} numpy | torch-{torch_device}:")
+    collection = VectorCollection[float](None, "test", LEN_512, quite_loading=True)
+    print(f"Compare for {n} vectors of length {LEN_512} numpy | torch-{torch_device}:")
 
     np.random.seed(0)
-    vectors = np.random.rand(n, LEN).tolist()
+    vectors = np.random.rand(n, LEN_512).tolist()
     ids = [str(x) for x in range(n)]
 
-    query = [float(x) for x in range(LEN)]
+    query = [float(x) for x in range(LEN_512)]
     target = vectors
 
     collection.addBlock(ids, vectors)
@@ -103,5 +102,6 @@ def compare(n: int, k = 16):
     print(f"Matrix mult. superiority: {t_1 / t_0 : .2f} | {t_2 / t_0} times faster", end="\n")
     print(f"Search superiority: {t_11 / t_01 : .2f} | {t_21 / t_01} times faster", end="\n\n")
 
-for i in range(2,6)[::-1]:
-    compare(10**i)
+def test_speed():
+    for i in range(2,6)[::-1]:
+        compare(10**i)
