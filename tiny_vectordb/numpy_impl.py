@@ -7,11 +7,16 @@ import numpy as np
 if TYPE_CHECKING:
     from .wrap import VectorDatabase
 
+
+np_dtype = np.float32
 class _VectorCollectionEncoding_Numpy(_VectorCollectionEncodingAbstract[NumVar]):
     def encode(self, vectors: list[NumVar]) -> str:
-        return base64.b64encode(np.array(vectors).tobytes()).decode()
+        return base64.b64encode(bytes(
+            np.array(vectors, dtype=np_dtype)
+        )).decode()
     def decode(self, enc_vectors: str) -> list[NumVar]:
-        return list(np.frombuffer(base64.b64decode(enc_vectors), dtype=np.float64))
+        return list(np.frombuffer(base64.b64decode(enc_vectors), dtype=np_dtype))
+
 class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
     def __init__(
             self, parent: Optional[VectorDatabase],
@@ -22,10 +27,12 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
         self.__name = name
         self.__database = parent
         self._dimension = dimension
-        self._ids: np.ndarray = np.array([])                # dim: (n, dimension)
+        self._ids: np.ndarray = np.array([], dtype = np_dtype)                # dim: (n, dimension)
         self._vec: np.ndarray = np.array([], dtype=str)     # dim: (n, )
 
         self._changes: dict[str, Literal["ADD", "DELETE", "UPDATE"]] = {}
+
+        self._encoding = _VectorCollectionEncoding_Numpy[NumVar]()
 
     @property
     def name(self):
@@ -35,7 +42,7 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
         return self.__database
     @property
     def encoding(self) -> _VectorCollectionEncoding_Numpy[NumVar]:
-        return _VectorCollectionEncoding_Numpy[NumVar]()
+        return self._encoding
     @property
     def dim(self) -> int:
         return self._dimension
@@ -53,8 +60,8 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
         if len(ids) != len(set(ids)):
             raise ValueError("Ids are not unique")
 
-        np_ids = np.array(ids)
-        np_vectors = np.array(vectors)
+        np_ids = np.array(ids, dtype=str)
+        np_vectors = np.array(vectors, dtype=np_dtype)
 
         # make sure all ids are not exists
         if np.isin(self._ids, np_ids).any():
@@ -83,7 +90,7 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
         if len(ids) > len(self):
             raise ValueError("Length of ids to delete is larger than length of collection")
         
-        np_ids = np.array(ids)
+        np_ids = np.array(ids, dtype=str)
 
         # make sure all ids exists in self._ids
         if not np.isin(np_ids, self._ids).all():
@@ -114,7 +121,7 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
             return
 
         np_ids = np.array(ids)
-        np_vectors = np.array(vectors)
+        np_vectors = np.array(vectors, dtype = np_dtype)
 
         # update
         mask = np.isin(self._ids, np_ids)
@@ -145,7 +152,7 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
         """
         if not self.has(id):
             return False
-        self._vectors[self._ids == id] = np.array(vector)
+        self._vectors[self._ids == id] = np.array(vector, dtype = np_dtype)
         # log modifications
         if id in self._changes and self._changes[id] == "ADD":
             # if id is added and then updated, keep it as "ADD"
@@ -172,7 +179,7 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
         """
         if not self.has(id):
             return []
-        return self._vectors[self._ids == id].tolist()
+        return self._vectors[self._ids == id][0].tolist()
     
     def getBlock(self, ids: list[str]) -> list[list[NumVar]]:
         """
@@ -187,12 +194,15 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
 
         return self._vectors[np.isin(self._ids, np.array(ids))].tolist()
     
-    def search(self, query: list[NumVar], k: int) -> tuple[list[str], list[float]]:
+    def search(self, query: list[NumVar], k: int = -1) -> tuple[list[str], list[float]]:
         """
         Search for top-k vectors, return ids and scores
         """
-        query_np = np.array(query)
+        query_np = np.array(query, dtype = np_dtype)
         scores = np.dot(self._vectors, query_np) / (np.linalg.norm(self._vectors, axis=1) * np.linalg.norm(query_np))
+        if k == -1:
+            k = len(self)
+            
         topk_indices = np.argsort(scores)[::-1][:k]
         return self._ids[topk_indices].tolist(), scores[topk_indices].tolist()
     

@@ -2,7 +2,6 @@
 
 import os
 import numpy as np
-import pytest
 from tiny_vectordb import VectorDatabase, autoCompileConfig
 
 VectorDatabase.VERBOSE = True

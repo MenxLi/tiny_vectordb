@@ -79,10 +79,15 @@ class VectorDatabase(dict[str, "VectorCollectionAbstract[float]"]):
         self.disk_io.commit()
 
 
-def getVectorCollectionBackend() -> type[VectorCollectionAbstract[NumVar]]:
-    if os.getenv("TVDB_BACKEND", 'jit').lower() == "jit":
+def getVectorCollectionBackend(backend: str = "") -> type[VectorCollectionAbstract[NumVar]]:
+    if not backend:
+        __backend = os.getenv("TVDB_BACKEND", 'cxx').lower()
+    else:
+        __backend = backend.lower()
+    
+    if __backend == "cxx" or __backend=="jit":
         return VectorCollection_CXX[NumVar]
-    elif os.getenv("TVDB_BACKEND", 'jit').lower() == "numpy":
+    elif __backend == "numpy":
         return VectorCollection_Numpy[NumVar]
     else:
         raise RuntimeError("Unknown backend")
