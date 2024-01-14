@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 from typing import Union, TypeVar, Optional, TypedDict, Optional
+from .jit import ensureEigen
 from .vector_collection import VectorCollection_CXX, VectorCollectionAbstract
 from .numpy_impl import VectorCollection_Numpy
 from .diskio import SqliteIO
@@ -86,8 +87,11 @@ def getVectorCollectionBackend(backend: str = "") -> type[VectorCollectionAbstra
         __backend = backend.lower()
     
     if __backend == "cxx" or __backend=="jit":
+        ensureEigen()
         return VectorCollection_CXX[NumVar]
-    elif __backend == "numpy":
+
+    elif __backend == "numpy" or __backend == "np":
         return VectorCollection_Numpy[NumVar]
+
     else:
         raise RuntimeError("Unknown backend")

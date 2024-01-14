@@ -8,7 +8,7 @@ from .jit_utils import initEigenSrc, checkCommandExists
 
 eigen_version = "3.4.0"
 eigen_src_path = os.path.join(CACHE_DIR, f"eigen{eigen_version}")
-initEigenSrc(eigen_src_path, eigen_version)
+ensureEigen = lambda : initEigenSrc(eigen_src_path, eigen_version)
 
 def _writeNinja(
         feat_dim: int, 
