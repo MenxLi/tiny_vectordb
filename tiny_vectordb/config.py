@@ -1,5 +1,6 @@
-import pkg_resources, os, shutil
-VERSION = pkg_resources.get_distribution("tiny_vectordb").version
+import os, shutil
+import importlib.metadata
+VERSION = importlib.metadata.version("tiny_vectordb")
 
 __this_dir = os.path.dirname(os.path.abspath(__file__))
 __this_dir = os.path.abspath(os.path.realpath(__this_dir))
