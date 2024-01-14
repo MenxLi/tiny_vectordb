@@ -7,3 +7,5 @@ pytest ${PYTEST_ARGS} ${THIS_DIR}/test_0.py
 pytest ${PYTEST_ARGS} ${THIS_DIR}/test_encoding.py
 pytest ${PYTEST_ARGS} ${THIS_DIR}/test_io.py
 pytest ${PYTEST_ARGS} ${THIS_DIR}/test_impl.py
+
+python ${THIS_DIR}/_test_speed.py

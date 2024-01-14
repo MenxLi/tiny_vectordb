@@ -54,10 +54,12 @@ def test_savenload():
     from tiny_vectordb import VectorDatabase
     import os
     n, LEN_6 = 5, 6
+
     os.environ["TINY_VECTORDB_BACKEND"] = "cxx"
     test_db_path = os.path.join(os.path.dirname(__file__), "test1.db")
     if os.path.exists(test_db_path):
         os.remove(test_db_path)
+
     database = VectorDatabase(
         test_db_path, 
         [{ "name": "Test", "dimension": LEN_6, }, { "name": "Hello", "dimension": LEN_6 }]
@@ -66,6 +68,8 @@ def test_savenload():
     np.random.seed(0)
     vectors = np.random.rand(n, LEN_6).tolist()
     ids = [str(x) for x in range(n)]
+
+    # breakpoint()
     collection.addBlock(ids, vectors)
     database.commit()
 

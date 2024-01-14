@@ -5,7 +5,7 @@ from typing import Generic, TypeVar, Optional, TYPE_CHECKING, Any
 from .jit import compile
 from .config import BIN_DIR
 import sys
-from importlib import import_module
+import importlib
 
 if TYPE_CHECKING:
     from .wrap import VectorDatabase, CompileConfig
@@ -81,7 +81,9 @@ class VectorCollection_CXX(VectorCollectionAbstract[NumVar]):
         self._demension = dimension
 
         _m_name = compile(dimension, quite = quite_loading, **compile_config)
-        self.__clib = import_module(_m_name)
+        self.__clib = importlib.import_module(_m_name)
+        # force reload
+        # importlib.reload(self.__clib)
         self.__impl = self.__clib.VectorCollectionImpl()
         if not quite_loading:
             print("\033[1;30m", end="\r")
