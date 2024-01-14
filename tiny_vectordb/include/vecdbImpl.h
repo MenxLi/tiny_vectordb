@@ -6,14 +6,6 @@
 #include <string>
 #include <vector>
 
-#ifndef FEAT_DIM
-#define FEAT_DIM 768
-#endif
-
-#ifndef MODULE_NAME
-#define MODULE_NAME vecdbImpl
-#endif
-
 namespace py = pybind11;
 
 template <typename NumT>
@@ -21,6 +13,7 @@ class VectorCollectionImpl{
 public:
     VectorCollectionImpl();
     ~VectorCollectionImpl();
+    static const int dim = FEAT_DIM;
     int size();
 
     // add vectors to the collection, addBulk will log modification
@@ -54,7 +47,6 @@ public:
 
     void print();
 private:
-    static const int dim = FEAT_DIM;
     // identifiers and vector_chunk should have the same size
     // these two variables are used to store the data
     StringVector* identifiers;

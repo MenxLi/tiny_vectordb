@@ -108,11 +108,15 @@ class VectorCollection(Generic[NumVar]):
         if compile_config is None:
             compile_config = self.__class__.COMPILE_CONFIG
 
+        self._demension = dimension
+
         _m_name = compile(dimension, quite = quite_loading, **compile_config)
         self.__clib = import_module(_m_name)
         self.__impl = self.__clib.VectorCollectionImpl()
         if not quite_loading:
-            print("#### Loaded", _m_name, "from", BIN_DIR)
+            print("\033[1;30m", end="\r")
+            print(f"[[ Loaded {_m_name} from {BIN_DIR} ]]")
+            print("\033[0m", end="\r")
 
         self.__name = name
         self.__database = parent
@@ -132,11 +136,19 @@ class VectorCollection(Generic[NumVar]):
     @property
     def encoding(self) -> _VectorCollectionEncoding[NumVar]:
         return self.__clib.enc
+    @property
+    def dim(self) -> int:
+        assert self._demension == self.clib.FEAT_DIM, "Dimension mismatch"
+        return self._demension
     
     def addBlock(self, ids: list[str], vectors: list[list[NumVar]]):
         """
         Add a bulk of elements, will raise error if id exists
         """
+        # debug.
+        for id, vector in zip(ids, vectors):
+            assert len(vector) == self._demension, f"Vector dimension mismatch, expected {self._demension}, got {len(vector)}"
+
         self._impl.addBulk(ids, vectors)
     
     def deleteBlock(self, ids: list[str]) -> None:

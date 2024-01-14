@@ -1,5 +1,13 @@
 #pragma once
 
+#ifndef FEAT_DIM
+#define FEAT_DIM 768
+#endif
+
+#ifndef MODULE_NAME
+#define MODULE_NAME vecdbImpl
+#endif
+
 #include <memory>
 #include <vector>
 #include <string>

@@ -4,6 +4,7 @@
 #include "pybind11/pytypes.h"
 #include "searchAlgorithm.hpp"
 #include "vecdbImpl.h"
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -88,6 +89,7 @@ void VectorCollectionImpl<NumT>::addRawBulk(StringVector ids, const std::vector<
     identifiers -> insert(identifiers->end(), ids.begin(), ids.end());
 
     // update matrix
+    // std::cout << "!! DEBUG: " << vectors[0].size() << " " << FEAT_DIM << std::endl;
     for (int i = 0; i < ids.size(); i++){
         if (vectors[i].size() != FEAT_DIM){
             throw std::runtime_error("vector size not match: " + 
@@ -329,7 +331,12 @@ PYBIND11_MODULE(MODULE_NAME, m){
     m.doc() = "pybind11 vecdbImpl plugin";
 
     py::class_< VectorCollectionImpl<num_t> >(m, "VectorCollectionImpl", py::module_local())
-        .def(py::init<>())
+        .def(py::init<>(
+            // [](){
+            //     std::cout<< "!!! The package is build with FEAT_DIM: " << FEAT_DIM <<std::endl;
+            //     return new VectorCollectionImpl<num_t>();
+            // }
+        ))
         .def("addBulk", &VectorCollectionImpl<num_t>::addBulk)
         .def("addRawEncBulk", &VectorCollectionImpl<num_t>::addRawEncBulk)
         .def("setBulk", &VectorCollectionImpl<num_t>::setBulk)
@@ -344,6 +351,9 @@ PYBIND11_MODULE(MODULE_NAME, m){
         .def("search", &VectorCollectionImpl<num_t>::search)
         .def("score", &VectorCollectionImpl<num_t>::score)
         .def("flush", &VectorCollectionImpl<num_t>::flush);
+
+    // for debug.
+    m.attr("FEAT_DIM") = FEAT_DIM;
     
     auto m_enc = m.def_submodule("enc");
     m_enc.def("encode", &VectorStringEncode::encode<num_t>);
