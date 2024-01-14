@@ -23,6 +23,10 @@ def numpy_impl():
         dimension=3
     )
 
+def almostEqual(a, b):
+    return np.allclose(a, b)
+    # return (np.abs(np.array(a) - np.array(b)) < 1e-6).all()
+
 def test_encoding(cxx_impl: VectorCollectionT, numpy_impl: VectorCollectionT):
     enc1 = cxx_impl.encoding
     enc2 = numpy_impl.encoding
@@ -45,3 +49,32 @@ def test_getBlock(cxx_impl: VectorCollectionT, numpy_impl: VectorCollectionT):
 
 def test_search(cxx_impl: VectorCollectionT, numpy_impl: VectorCollectionT):
     assert cxx_impl.search([1, 2, 3]) == numpy_impl.search([1, 2, 3])
+
+def test_savenload():
+    from tiny_vectordb import VectorDatabase
+    import os
+    n, LEN_6 = 5, 6
+    os.environ["TINY_VECTORDB_BACKEND"] = "cxx"
+    test_db_path = os.path.join(os.path.dirname(__file__), "test1.db")
+    if os.path.exists(test_db_path):
+        os.remove(test_db_path)
+    database = VectorDatabase(
+        test_db_path, 
+        [{ "name": "Test", "dimension": LEN_6, }, { "name": "Hello", "dimension": LEN_6 }]
+        )
+    collection = database.getCollection("Test")
+    np.random.seed(0)
+    vectors = np.random.rand(n, LEN_6).tolist()
+    ids = [str(x) for x in range(n)]
+    collection.addBlock(ids, vectors)
+    database.commit()
+
+    os.environ["TINY_VECTORDB_BACKEND"] = "numpy"
+    database = VectorDatabase(
+        test_db_path, 
+        [{ "name": "Test", "dimension": LEN_6, }, { "name": "Hello", "dimension": LEN_6 }]
+        )
+    collection = database.getCollection("Test")
+    assert almostEqual(collection.getBlock(ids), vectors)
+
+    os.remove(test_db_path)
