@@ -46,7 +46,7 @@ def search_torch(ids: list[str], tgt, query, k):
     return ids[topk_indices.cpu().numpy()], scores[topk_indices]
 
 def compare(n: int, k = 16):
-    collection = VectorCollection[float](None, "test", LEN_512, quite_loading=True)
+    collection = VectorCollection(None, "test", LEN_512, quite_loading=True)
     print(f"Compare for {n} vectors of length {LEN_512} numpy | torch-{torch_device}:")
 
     np.random.seed(0)

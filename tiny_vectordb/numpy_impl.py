@@ -1,34 +1,27 @@
 from __future__ import annotations
-from typing import Generic, TypeVar, TYPE_CHECKING, Optional, Literal
+from typing import TYPE_CHECKING, Optional, Literal
+from .vector_collection import VectorCollectionAbstract, NumVar, _VectorCollectionEncodingAbstract
 import base64
 import numpy as np
 
 if TYPE_CHECKING:
     from .wrap import VectorDatabase
 
-NumVar = TypeVar('NumVar', int, float)
-
-class _VectorCollectionEncoding_Numpy(Generic[NumVar]):
+class _VectorCollectionEncoding_Numpy(_VectorCollectionEncodingAbstract[NumVar]):
     def encode(self, vectors: list[NumVar]) -> str:
         return base64.b64encode(np.array(vectors).tobytes()).decode()
-    
     def decode(self, enc_vectors: str) -> list[NumVar]:
         return list(np.frombuffer(base64.b64decode(enc_vectors), dtype=np.float64))
-
-
-class VectorCollection_Numpy(Generic[NumVar]):
-
+class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
     def __init__(
             self, parent: Optional[VectorDatabase],
             name: str,
             dimension: int,
             **_
             ):
-        super().__init__()
         self.__name = name
         self.__database = parent
-
-        self.dimension = dimension
+        self._dimension = dimension
         self._ids: np.ndarray = np.array([])                # dim: (n, dimension)
         self._vec: np.ndarray = np.array([], dtype=str)     # dim: (n, )
 
@@ -43,6 +36,9 @@ class VectorCollection_Numpy(Generic[NumVar]):
     @property
     def encoding(self) -> _VectorCollectionEncoding_Numpy[NumVar]:
         return _VectorCollectionEncoding_Numpy[NumVar]()
+    @property
+    def dim(self) -> int:
+        return self._dimension
     
     def addBlock(self, ids: list[str], vectors: list[list[NumVar]]):
         """
@@ -211,7 +207,7 @@ class VectorCollection_Numpy(Generic[NumVar]):
             raise RuntimeError("Collection is not empty, cannot load from disk")
         
         ids, enc_vectors = self.database.disk_io.getTableData(self.name)
-        vectors = np.zeros(shape = (len(ids), self.dimension))
+        vectors = np.zeros(shape = (len(ids), self._dimension))
         for i, enc_vector in enumerate(enc_vectors):
             vectors[i] = self.encoding.decode(enc_vector)
         self._ids = np.array(ids)
