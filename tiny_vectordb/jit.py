@@ -2,13 +2,29 @@
 # https://ninja-build.org/manual.html
 from ninja import ninja_syntax
 import pybind11
-import os, sysconfig, subprocess, platform, sys
+import os, sysconfig, subprocess, platform, sys, dataclasses
 from .config import CACHE_DIR, SRC_DIR, HEADER_DIR, BUILD_DIR, BIN_DIR
 from .jit_utils import initEigenSrc, checkCommandExists
 
 eigen_version = "3.4.0"
 eigen_src_path = os.path.join(CACHE_DIR, f"eigen{eigen_version}")
 ensureEigen = lambda : initEigenSrc(eigen_src_path, eigen_version)
+
+
+@dataclasses.dataclass(frozen=True)
+class PlatformBasicConfig:
+
+    ext_suffix = sysconfig.get_config_var("EXT_SUFFIX")
+    obj_suffix = ".obj" if platform.system() == "Windows" else ".o"
+    py_includes = sysconfig.get_config_var('INCLUDEPY')
+
+def _getPathToThisCompile(m_name: str):
+    # m_name: module name
+    return {
+        "bin": os.path.join(BIN_DIR, m_name),
+        "scripts": os.path.join(BUILD_DIR, "scripts_"+ m_name),
+        "lib": os.path.join(BIN_DIR, "lib"),
+    }
 
 def _writeNinja(
         feat_dim: int, 
@@ -20,18 +36,16 @@ def _writeNinja(
         raise RuntimeError(f"{cxx} not found.")
 
     module_name = _get_module_name(feat_dim)
-    bin_dir = os.path.join(BIN_DIR, module_name)
-    script_dir = os.path.join(BUILD_DIR, "scripts_"+ module_name)
-    lib_dir = os.path.join(BIN_DIR, "lib")
-    # lib_dir = bin_dir
+    __path = _getPathToThisCompile(module_name)
+    script_dir = __path["scripts"]
+    bin_dir = __path["bin"]
+    lib_dir = __path["lib"]
+
     ninja_build_file = os.path.join(script_dir, "build.ninja")
     for _d in [bin_dir, lib_dir, script_dir]:
         if not os.path.exists(_d):
             os.makedirs(_d, exist_ok=True)
 
-    ext_suffix = sysconfig.get_config_var("EXT_SUFFIX")
-    obj_suffix = ".obj" if platform.system() == "Windows" else ".o"
-    py_includes = sysconfig.get_config_var('INCLUDEPY')
 
     with open(ninja_build_file, "w") as build_file:
         writer = ninja_syntax.Writer(build_file)
@@ -45,7 +59,7 @@ def _writeNinja(
                 "-std=c++17",
                 "-Wall",
                 f"-I{eigen_src_path}",
-                f"-I{py_includes}",
+                f"-I{PlatformBasicConfig.py_includes}",
                 f"-I{pybind11.get_include()}",
                 f"-I{HEADER_DIR}",
                 f"-DFEAT_DIM={feat_dim}",
@@ -76,14 +90,14 @@ def _writeNinja(
 
             writer.rule("compile", "$CXX -MMD -MF $out.d $CXX_FLAGS $in -c -o $out", depfile="$out.d", description="compile $out")
             for _m in to_compile:
-                writer.build(os.path.join(bin_dir, f"{_m}{feat_dim}{obj_suffix}"), "compile", os.path.join(SRC_DIR, f"{_m}.cpp"))
+                writer.build(os.path.join(bin_dir, f"{_m}{feat_dim}{PlatformBasicConfig.obj_suffix}"), "compile", os.path.join(SRC_DIR, f"{_m}.cpp"))
             for _m in to_compile_lib:
-                writer.build(os.path.join(lib_dir, f"{_m}{obj_suffix}"), "compile", os.path.join(SRC_DIR, f"{_m}.cpp"))
+                writer.build(os.path.join(lib_dir, f"{_m}{PlatformBasicConfig.obj_suffix}"), "compile", os.path.join(SRC_DIR, f"{_m}.cpp"))
             
             writer.rule("link", "$CXX $LINK_FLAGS $in -o $out", description="link $out")
-            writer.build(os.path.join(bin_dir, f"{module_name}{ext_suffix}"), "link", \
-                            [os.path.join(bin_dir, f"{_m}{feat_dim}{obj_suffix}") for _m in to_compile] + \
-                            [os.path.join(lib_dir, f"{_m}{obj_suffix}") for _m in to_compile_lib])
+            writer.build(os.path.join(bin_dir, f"{module_name}{PlatformBasicConfig.ext_suffix}"), "link", \
+                            [os.path.join(bin_dir, f"{_m}{feat_dim}{PlatformBasicConfig.obj_suffix}") for _m in to_compile] + \
+                            [os.path.join(lib_dir, f"{_m}{PlatformBasicConfig.obj_suffix}") for _m in to_compile_lib])
         
         elif cxx == "cl" and platform.system() == "Windows":
             # TODO: to be implemented...
@@ -104,6 +118,16 @@ def compile(
         additional_compile_flags = [],
         additional_link_flags = []
         ) -> str:
+    
+    if not os.getenv("TVDB_FORCE_COMPILE", False):
+        # if the module is already compiled, return the module name
+        _m_name = _get_module_name(feat_dim)
+        _bin_dir = _getPathToThisCompile(_m_name)["bin"]
+        _aim_file = os.path.join(_bin_dir, f"{_m_name}{PlatformBasicConfig.ext_suffix}")
+        if os.path.exists(_aim_file):
+            return f"{_bin_dir}.{_m_name}".split(os.path.sep)[-1]
+
+    # else, compile the module, 
     module_name, script_dir, bin_dir = _writeNinja(
         feat_dim, 
         cxx=cxx, 
