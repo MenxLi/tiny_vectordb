@@ -48,14 +48,19 @@ def _writeNinja(
     
     __lock_file = os.path.join(script_dir, "writing.lock")
     __wait_time = 0
+    __reuse = False
     while os.path.exists(__lock_file):
         __wait_time += 0.1
+        __reuse = True  # if the lock file exists, it means the module is being built by another process
         time.sleep(0.1)
         if __wait_time > 3:
             raise RuntimeError(
                 "Waiting for lock file timeout. Please check if there is another build process running.\n"
                 "If not, please remove the lock file at '{}' manually.".format(__lock_file)
                 )
+    if __reuse:
+        # should be written by another concurrent process
+        return module_name, script_dir, bin_dir
 
     open(__lock_file, "w").close()
     with open(ninja_build_file, "w") as build_file:
