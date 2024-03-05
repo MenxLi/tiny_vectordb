@@ -160,14 +160,20 @@ def compile(
 
     __buid_lock = os.path.join(script_dir, "building.lock")
     _sleep_time = 0
+    _reuse = False
     while os.path.exists(__buid_lock):
         time.sleep(0.1)
+        _reuse = True   # if the lock file exists, it means the module is being built by another process
         _sleep_time += 0.1
         if _sleep_time > 10:
             raise RuntimeError(
                 "Waiting for building timeout. Please check if there is another build process running.\n"
                 "If not, please remove the lock file at '{}' manually.".format(__buid_lock)
                 )
+    if _reuse and os.path.exists(os.path.join(bin_dir, f"{module_name}{PlatformBasicConfig.ext_suffix}")):
+        # return without building it again
+        return f"{bin_dir}.{module_name}".split(os.path.sep)[-1]
+
     open(__buid_lock, "w").close()
     try:
         subprocess.check_call("ninja", cwd = script_dir, stdout=SP_STDOUT)
