@@ -49,6 +49,7 @@ class VectorCollectionAbstract(ABC, Generic[NumVar]):
     def getBlock(self, ids: list[str]) -> list[list[NumVar]]:...
     def search(self, query: list[NumVar], k: int = -1) -> tuple[list[str], list[float]]:...
     def loadFromDisk(self) -> None:...
+    def load(self, ids: list[str], enc_vectors: list[str]) -> None:...
     def flush(self) -> CollectionChanges:...
     def __len__(self) -> int:...
     def __getitem__(self, id: str) -> Optional[list[NumVar]]:...
@@ -174,18 +175,22 @@ class VectorCollection_CXX(VectorCollectionAbstract[NumVar]):
         """Return a tuple of (ids, scores)"""
         return self._impl.search(query, k)
     
+    def load(self, ids: list[str], enc_vectors: list[str]) -> None:
+        """
+        Load a bulk of elements, should be called when the collection is empty
+        """
+        if len(self) != 0:
+            raise RuntimeError("Collection is not empty, cannot load data")
+        self._impl.addRawEncBulk(ids, enc_vectors)
+    
     def loadFromDisk(self) -> None:
         """
         Load all data of the collection from disk, 
         Should be called when the collection is attached to a database and is empty
         """
-        if not self.database:
-            return 
-        if len(self) != 0:
-            raise RuntimeError("Collection is not empty, cannot load from disk")
-        
+        if not self.database: return 
         ids, enc_vectors = self.database.disk_io.getTableData(self.name)
-        self._impl.addRawEncBulk(ids, enc_vectors)
+        self.load(ids, enc_vectors)
 
     def flush(self) -> CollectionChanges:
         """

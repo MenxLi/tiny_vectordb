@@ -206,6 +206,18 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
         topk_indices = np.argsort(scores)[::-1][:k]
         return self._ids[topk_indices].tolist(), scores[topk_indices].tolist()
     
+    def load(self, ids: list[str], enc_vectors: list[str]) -> None:
+        """
+        Load a bulk of elements, should be called when the collection is empty
+        """
+        if len(self) != 0:
+            raise RuntimeError("Collection is not empty, cannot load data")
+        vectors = np.zeros(shape = (len(ids), self._dimension))
+        for i, enc_vector in enumerate(enc_vectors):
+            vectors[i] = self.encoding.decode(enc_vector)
+        self._ids = np.array(ids)
+        self._vectors = vectors
+    
     def loadFromDisk(self) -> None:
         """
         Load all data of the collection from disk, 
@@ -213,15 +225,8 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
         """
         if not self.database:
             return 
-        if len(self) != 0:
-            raise RuntimeError("Collection is not empty, cannot load from disk")
-        
         ids, enc_vectors = self.database.disk_io.getTableData(self.name)
-        vectors = np.zeros(shape = (len(ids), self._dimension))
-        for i, enc_vector in enumerate(enc_vectors):
-            vectors[i] = self.encoding.decode(enc_vector)
-        self._ids = np.array(ids)
-        self._vectors = vectors
+        self.load(ids, enc_vectors)
 
     def flush(self) -> CollectionChanges:
         """
