@@ -1,7 +1,7 @@
 
 from __future__ import annotations
 from abc import ABC, abstractproperty
-from typing import Generic, TypeVar, Optional, TYPE_CHECKING, Any
+from typing import Generic, TypeVar, Optional, TYPE_CHECKING, Any, TypedDict
 from .jit import compile
 from .config import BIN_DIR
 import sys
@@ -12,6 +12,10 @@ if TYPE_CHECKING:
 
 
 NumVar = TypeVar('NumVar', int, float)
+class CollectionChanges(TypedDict):
+    ADD: tuple[list[str], list[str]]
+    UPDATE: tuple[list[str], list[str]]
+    DELETE: tuple[list[str], None]
 class _VectorCollectionEncodingAbstract(Generic[NumVar]):
     def encode(self, vectors: list[NumVar]) -> str:...
     def decode(self, enc_vectors: str) -> list[NumVar]:...
@@ -45,7 +49,7 @@ class VectorCollectionAbstract(ABC, Generic[NumVar]):
     def getBlock(self, ids: list[str]) -> list[list[NumVar]]:...
     def search(self, query: list[NumVar], k: int = -1) -> tuple[list[str], list[float]]:...
     def loadFromDisk(self) -> None:...
-    def _flush(self) -> bool:...
+    def flush(self) -> CollectionChanges:...
     def __len__(self) -> int:...
     def __getitem__(self, id: str) -> Optional[list[NumVar]]:...
 
@@ -183,14 +187,14 @@ class VectorCollection_CXX(VectorCollectionAbstract[NumVar]):
         ids, enc_vectors = self.database.disk_io.getTableData(self.name)
         self._impl.addRawEncBulk(ids, enc_vectors)
 
-    def _flush(self) -> bool:
+    def flush(self) -> CollectionChanges:
         """
         Load all changes to sqlite database memory, but not save to disk,
         If the collection is not attached to a database, return False
         """
-        changes = self._impl.flush()
+        changes: CollectionChanges = self._impl.flush()
         if not self.database:
-            return False
+            return changes
         ids_add, enc_vectors_add = changes["ADD"]
         for identifier, enc_vector in zip(ids_add, enc_vectors_add):
             self.database.disk_io.insetToTable(self.name, identifier, enc_vector)
@@ -199,7 +203,7 @@ class VectorCollection_CXX(VectorCollectionAbstract[NumVar]):
             self.database.disk_io.updateTable(self.name, identifier, enc_vector)
         for identifier in changes["DELETE"][0]:
             self.database.disk_io.deleteFromTable(self.name, identifier)
-        return True
+        return changes
 
     def __len__(self) -> int:
         return self._impl.size()

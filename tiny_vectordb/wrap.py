@@ -76,7 +76,7 @@ class VectorDatabase(dict[str, "VectorCollectionAbstract[float]"]):
         Commit all changes to sqlite database and commit
         """
         for collection in self.values():
-            collection._flush()
+            collection.flush()
         self.disk_io.commit()
 
 

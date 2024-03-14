@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Literal
-from .vector_collection import VectorCollectionAbstract, NumVar, _VectorCollectionEncodingAbstract
+from .vector_collection import VectorCollectionAbstract, NumVar, _VectorCollectionEncodingAbstract, CollectionChanges
 import base64
 import numpy as np
 
@@ -223,16 +223,13 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
         self._ids = np.array(ids)
         self._vectors = vectors
 
-    def _flush(self) -> bool:
+    def flush(self) -> CollectionChanges:
         """
         Load all changes to sqlite database memory, but not save to disk,
         If the collection is not attached to a database, return False
         """
-        if not self.database:
-            return False
-
         # gather changes
-        changes = {
+        changes: CollectionChanges = {
             "ADD": ([], []),
             "UPDATE": ([], []),
             "DELETE": ([], None)
@@ -249,6 +246,12 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
             else:
                 raise RuntimeError(f"Unknown change type {change_type}")
         
+        # TODO: reset changes
+        # self._changes = {}
+
+        if not self.database:
+            return changes
+        
         ids_add, enc_vectors_add = changes["ADD"]
         for identifier, enc_vector in zip(ids_add, enc_vectors_add):
             self.database.disk_io.insetToTable(self.name, identifier, enc_vector)
@@ -257,7 +260,7 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
             self.database.disk_io.updateTable(self.name, identifier, enc_vector)
         for identifier in changes["DELETE"][0]:
             self.database.disk_io.deleteFromTable(self.name, identifier)
-        return True
+        return changes
 
     def __len__(self) -> int:
         return len(self._ids)
