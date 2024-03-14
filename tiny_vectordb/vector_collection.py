@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractproperty
 from typing import Generic, TypeVar, Optional, TYPE_CHECKING, Any, TypedDict
 from .jit import compile
+from .jit_utils import autoCompileConfig
 from .config import BIN_DIR
 import sys
 import importlib
@@ -60,12 +61,6 @@ class _VectorCollectionEncoding(VectorCollectionAbstract[NumVar]):
     def decode(self, enc_vector: str) -> list[NumVar]: ...
 
 class VectorCollection_CXX(VectorCollectionAbstract[NumVar]):
-    COMPILE_CONFIG: CompileConfig = {
-        "cxx": "g++",
-        "additional_compile_flags": [],     # "-march=native", "-mtune=native",
-        "additional_link_flags": []
-    }
-
     def __init__(
             self, parent: Optional[VectorDatabase], 
             name: str, 
@@ -81,7 +76,7 @@ class VectorCollection_CXX(VectorCollectionAbstract[NumVar]):
                 print("Adding", BIN_DIR, "to sys.path")
             sys.path.append(BIN_DIR)
         if compile_config is None:
-            compile_config = self.__class__.COMPILE_CONFIG
+            compile_config = autoCompileConfig()
 
         self._demension = dimension
 

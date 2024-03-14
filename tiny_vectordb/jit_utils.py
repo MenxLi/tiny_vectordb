@@ -37,24 +37,28 @@ def initEigenSrc(eigen_src_path: str, eigen_version: str = "3.4.0"):
         finally:
             os.remove(__downloading_lock_file)
 
+# TODO: improve this...
 def autoCompileConfig() -> CompileConfig:
     """
     Return automatically detected compile config for the current environment. 
     Will check existence of compilers and files.
     """
-    # TODO: improve this...
-    cxx = None
-    for _cxx in ["g++", "clang++"]:
-        if checkCommandExists(_cxx):
-            cxx = _cxx
-            break
-    if cxx is None:
-        raise RuntimeError("No C++ compiler found. Please install g++ or clang++.")
+    def getCxxCompiler():
+        cxx = os.getenv("CXX", None)
+        if cxx is not None:
+            return cxx
+        for _cxx in ["g++", "clang++"]:
+            if checkCommandExists(_cxx):
+                cxx = _cxx
+                break
+        if cxx is None:
+            raise RuntimeError("No C++ compiler found. Please install g++ or clang++.")
+        return cxx
     
+    cxx = getCxxCompiler()
     additional_compile_flags = [
         "-march=native", "-mtune=native",
     ]
-
     additional_link_flags = []
     
     return {
