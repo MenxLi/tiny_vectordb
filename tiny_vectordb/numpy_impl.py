@@ -246,8 +246,7 @@ class VectorCollection_Numpy(VectorCollectionAbstract[NumVar]):
             else:
                 raise RuntimeError(f"Unknown change type {change_type}")
         
-        # TODO: reset changes
-        # self._changes = {}
+        self._changes = {}  # reset
 
         if not self.database:
             return changes
