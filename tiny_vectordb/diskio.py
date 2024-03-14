@@ -44,12 +44,12 @@ class SqliteIO:
         return ret
 
     @lockRequire(_lock)
-    def insetToTable(self, name: str, id: str, enc_vector: list[str]) -> None:
+    def insetToTable(self, name: str, id: str, enc_vector: str) -> None:
         # insert one row to table, make sure id not exists
         self.cur.execute(f"INSERT INTO {name} VALUES (?, ?)", (id, enc_vector))
     
     @lockRequire(_lock)
-    def updateTable(self, name: str, id: str, enc_vector: list[str]) -> None:
+    def updateTable(self, name: str, id: str, enc_vector: str) -> None:
         # update one row to table, make sure id exists
         self.cur.execute(f"UPDATE {name} SET vector = ? WHERE id = ?", (enc_vector, id))
     
