@@ -8,13 +8,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tiny_vectordb"
-version = "0.1.9"
+version = "0.1.10"
 authors = [
   { name="Li, Mengxun", email="mengxunli@whu.edu.cn" },
 ]
 description = "A tiny jit vector database with minimal dependencies and maximum performance."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"     # PEP 585
 license = { file = "LICENSE" }
 classifiers = [
     "Development Status :: 3 - Alpha",
