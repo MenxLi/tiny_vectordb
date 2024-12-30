@@ -1,6 +1,6 @@
 
 from __future__ import annotations
-from abc import ABC, abstractproperty
+from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, Optional, TYPE_CHECKING, Any, TypedDict
 from .jit import compile
 from .jit_utils import autoCompileConfig
@@ -21,6 +21,7 @@ class _VectorCollectionEncodingAbstract(Generic[NumVar]):
     def encode(self, vectors: list[NumVar]) -> str:...
     def decode(self, enc_vectors: str) -> list[NumVar]:...
 class VectorCollectionAbstract(ABC, Generic[NumVar]):
+    @abstractmethod
     def __init__(
             self, parent: Optional[VectorDatabase], 
             name: str, 
@@ -30,7 +31,8 @@ class VectorCollectionAbstract(ABC, Generic[NumVar]):
             ):
         ...
     
-    @abstractproperty
+    @property
+    @abstractmethod
     def name(self)->str:...
     @property
     def database(self)->Optional[VectorDatabase]:...
@@ -78,7 +80,7 @@ class VectorCollection_CXX(VectorCollectionAbstract[NumVar]):
         if compile_config is None:
             compile_config = autoCompileConfig()
 
-        self._demension = dimension
+        self._dimension = dimension
 
         _m_name = compile(dimension, quite = quite_loading, **compile_config)
         self.__clib = importlib.import_module(_m_name)
@@ -110,8 +112,8 @@ class VectorCollection_CXX(VectorCollectionAbstract[NumVar]):
         return self.__clib.enc
     @property
     def dim(self) -> int:
-        assert self._demension == self.clib.FEAT_DIM, "Dimension mismatch"
-        return self._demension
+        assert self._dimension == self.clib.FEAT_DIM, "Dimension mismatch"
+        return self._dimension
     
     def addBlock(self, ids: list[str], vectors: list[list[NumVar]]):
         """
@@ -119,7 +121,7 @@ class VectorCollection_CXX(VectorCollectionAbstract[NumVar]):
         """
         # debug.
         for id, vector in zip(ids, vectors):
-            assert len(vector) == self._demension, f"Vector dimension mismatch, expected {self._demension}, got {len(vector)}"
+            assert len(vector) == self._dimension, f"Vector dimension mismatch, expected {self._dimension}, got {len(vector)}"
 
         self._impl.addBulk(ids, vectors)
     
