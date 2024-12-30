@@ -1,4 +1,5 @@
 import os, shutil
+from platformdirs import user_cache_dir
 import importlib.metadata
 VERSION = importlib.metadata.version("tiny_vectordb")
 
@@ -6,9 +7,7 @@ __this_dir = os.path.dirname(os.path.abspath(__file__))
 __this_dir = os.path.abspath(os.path.realpath(__this_dir))
 SRC_DIR = os.path.join(__this_dir, "src")
 HEADER_DIR = os.path.join(__this_dir, "include")
-CACHE_DIR = os.getenv("TVDB_CACHE_DIR", os.path.join(__this_dir, "_cache"))
-if not os.path.exists(CACHE_DIR):
-    os.mkdir(CACHE_DIR)
+CACHE_DIR = os.getenv("TVDB_CACHE_DIR", user_cache_dir(appname="tiny_vectordb", ensure_exists=True))
 
 def cleanup():
     """
